@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.github.no_name_provided.nnp_fluidlogging.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FFluidlogging_BlockBehavior",
+    "FFluidlogging_LeavesBlock",
+    "FFluidlogging_LevelChunk",
+    "FFluidlogging_LevelChunkSection",
+    "FFluidlogging_SimpleWaterloggedBlock"
+  ],
+  "client": [
+    "FFluidlogging_LiquidBlockRenderer",
+    "FFluidlogging_RenderChunkRegion",
+    "FFluidlogging_SectionCompiler"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
