@@ -1,0 +1,11 @@
+https://creativecommons.org/licenses/by-nc-sa/4.0/ (modified)
+
+Attribution-NonCommercial-ShareAlike 4.0 International with the following modifications:
+- Some files and assets may be separately licensed
+- Don't redistribute executables. Instead, link the official CurseForge or Modrinth download pages
+- The above line only applies if you don't create a fork (without intent to remerge) and make significant improvements. (If this project is abandoned, you don't need permission to fork and maintain it)
+- You are encouraged (but not required) to contribute to the original project, rather than forking
+- This mod is provided without any warranty that can be disclaimed. Use at your own risk
+
+Original author: No Name Provided (https://github.com/no-name-provided, https://www.curseforge.com/members/no_name_provided/projects, https://modrinth.com/user/No_Name_Provided)
+
