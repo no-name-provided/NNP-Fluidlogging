@@ -15,6 +15,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+/**
+ * These mixins cause adjacent fluid logged blocks are treated as sources for (already) flowing fluids.
+ */
 @Mixin(LiquidBlockRenderer.class)
 public class FFluidlogging_LiquidBlockRenderer {
     
@@ -75,7 +78,7 @@ public class FFluidlogging_LiquidBlockRenderer {
     /**
      * Convenience method for checking fluid states during rendering with some degree of efficiency.
      *
-     * @param pos   Location.
+     * @param pos   Location of block space.
      * @param level BlockAndTintGetter. This isn't necessarily going to be a level.
      * @return The fluid state to be used for rendering.
      */

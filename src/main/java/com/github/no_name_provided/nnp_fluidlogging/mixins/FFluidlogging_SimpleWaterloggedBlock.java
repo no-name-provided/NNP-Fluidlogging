@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -23,6 +24,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 
+/**
+ * Important mixins - allow SimpleWaterloggedBlock to interact with our attachment.
+ */
 @Mixin(SimpleWaterloggedBlock.class)
 public interface FFluidlogging_SimpleWaterloggedBlock {
     
@@ -32,13 +36,15 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         original.call(player, getter, pos, state, fluid);
         
         // TODO: White/Blacklist
-        return true;
+        // Filter out fluids without buckets, to avoid an entire category of potential errors.
+        // Default bucket is Items.AIR. Might also need to null check
+        return fluid.getBucket() != Items.AIR;
     }
     
     @WrapMethod(method = "placeLiquid(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)Z")
     private boolean nnp_f_fluidlogging_placeLiquid(
             LevelAccessor level,
-            /*Lies! This is secretly mutable, and violates the substitution principle*/
+            // Lies! This is secretly mutable, and violates the substitution principle
             BlockPos pos,
             BlockState state,
             FluidState fluidState,
@@ -52,12 +58,15 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 // Syncing to client is handled by the attachment
                 if (!level.isClientSide()) {
                     // Conditional has side effect
-                    if (level.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), 3)) {
-                        ChunkAccess chunk = level.getChunk(pos);
-                        chunk.getData(FLUID_STATES).map().put(pos.immutable(), fluidState);
-                        // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
-                        chunk.syncData(FLUID_STATES);
-                        chunk.setUnsaved(true);
+                    if (level.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_ALL)) {
+                        // Attempt to resolve bugs with flowing fluid; check may not be necessary
+                        if (fluidState.isSource()) {
+                            ChunkAccess chunk = level.getChunk(pos);
+                            chunk.getData(FLUID_STATES).map().put(pos.immutable(), fluidState);
+                            // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
+                            chunk.syncData(FLUID_STATES);
+                            chunk.setUnsaved(true);
+                        }
                         level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
                     }
                 }
@@ -74,27 +83,36 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             at = @At("RETURN"), cancellable = true)
     private void nnp_f_fluidlogging_pickupBlock(Player player, LevelAccessor level, BlockPos pos, BlockState state, CallbackInfoReturnable<ItemStack> cir) {
         // Unsetting the waterlogged flag is handled by the vanilla method we're injecting after
-        
         ChunkAccess chunk = level.getChunk(pos);
         FluidStates states = chunk.getData(FLUID_STATES);
         // For vanilla support, we default to the blockstate based waterlogging check
         FluidState fluidState = states.map().getOrDefault(pos, chunk.getFluidState(pos));
-        states.map().remove(pos);
-        chunk.setUnsaved(true);
-        level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
         
-        // Vanilla default for waterlogged blocks
-        if (fluidState.is(Fluids.WATER)) {
+        // Vanilla default for waterlogged blocks. For consistency with worldgenned waterlogged blocks, water is _not_
+        // stored in our data structure. Instead, it's represented by a waterlogged=true block without a corresponding
+        // entry in our attachment. Note that the original waterlogged value will be cleared by the time this condition
+        // is it, so we need to look at side effects (the vanilla return value)
+        if (cir.getReturnValue().is(Items.WATER_BUCKET) && fluidState.isEmpty()) {
             
             cir.cancel();
+            // Only matches source blocks (flowing blocks are a different class)
         } else if (fluidState.is(Fluids.LAVA)) {
+            states.map().remove(pos);
+            chunk.setUnsaved(true);
+            level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
             
             // Lava has a weird, limited type implementation, so we don't trust it
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
+            states.map().remove(pos);
+            chunk.setUnsaved(true);
+            level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
             
             // TODO: test with partial fluid implementations (no flowing, bucket, etc.)
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
+        } else {
+            
+            cir.setReturnValue(ItemStack.EMPTY);
         }
     }
 }

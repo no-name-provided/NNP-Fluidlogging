@@ -19,10 +19,18 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import java.util.List;
 
 /**
- * Important mixin - tells the game which fluid to render... at least until the block is updated.
+ * Important mixin - tells the game which fluid to render.
  */
 @Mixin(SectionCompiler.class)
 abstract class FFluidlogging_SectionCompiler {
+    /**
+     * Convenience method to calculate the correct fluid state for a block.
+     *
+     * @param state  The blockstate.
+     * @param pos    The location within the level.
+     * @param region The (render) chunk region; essentially a set of chunks from which we can get information.
+     * @return The fluidstate at that block space.
+     */
     @Unique
     private static FluidState NNPFluidlogging$getFluidState(BlockState state, BlockPos pos, RenderChunkRegion region) {
         if (!state.isAir() && state.hasProperty(BlockStateProperties.WATERLOGGED)) {
@@ -37,6 +45,7 @@ abstract class FFluidlogging_SectionCompiler {
     
     /**
      * This makes blocks render with the correct fluid.
+     *
      * @return The fluid contained in the block, as reported by our modded data structure.
      */
     @ModifyVariable(method = "compile(Lnet/minecraft/core/SectionPos;Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;Lcom/mojang/blaze3d/vertex/VertexSorting;Lnet/minecraft/client/renderer/SectionBufferBuilderPack;Ljava/util/List;)Lnet/minecraft/client/renderer/chunk/SectionCompiler$Results;",
@@ -46,7 +55,7 @@ abstract class FFluidlogging_SectionCompiler {
     private FluidState nnp_f_fluidlogging_compile(FluidState vanillaValue, SectionPos pos, RenderChunkRegion region, VertexSorting vertexSorting, SectionBufferBuilderPack pack, List<AddSectionGeometryEvent.AdditionalSectionRenderer> additionalRenderers, @Local(ordinal = 2) BlockPos bPos) {
         BlockState state = region.getBlockState(bPos);
         if (!state.isAir() && state.hasProperty(BlockStateProperties.WATERLOGGED)) {
-
+            
             return NNPFluidlogging$getFluidState(state, bPos, region);
         } else {
             

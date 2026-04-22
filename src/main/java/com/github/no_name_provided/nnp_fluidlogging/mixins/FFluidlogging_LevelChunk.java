@@ -23,6 +23,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 
+/**
+ * Important mixin - Does most of the heavy lifting of making fluidstate checks prefer our data structure. Some other
+ * mixins ultimately boil down to replacing hardcoded BlockState#getFluidState with calls to this.
+ */
 @Mixin(LevelChunk.class)
 public abstract class FFluidlogging_LevelChunk extends ChunkAccess {
     @Final @Shadow
@@ -32,7 +36,15 @@ public abstract class FFluidlogging_LevelChunk extends ChunkAccess {
         super(pos, data, heightGetter, biomeRegistry, rand, levelChunkSections, blendingData);
     }
     
-    
+    /**
+     * Does most of the heavy lifting of making functional fluidstate checks prefer our attachment over the cached,
+     * hardcoded blockstate default.
+     * <p>
+     * Heavily borrows from vanilla.
+     * </p>
+     *
+     * @param cir Wrapper for return value. Triggers early return when used.
+     */
     @Inject(method = "getFluidState(III)Lnet/minecraft/world/level/material/FluidState;",
             at = @At("RETURN"), cancellable = true)
     private void nnp_f_fluidlogging_getFluidState(int x, int y, int z, CallbackInfoReturnable<FluidState> cir) {
@@ -44,6 +56,7 @@ public abstract class FFluidlogging_LevelChunk extends ChunkAccess {
             //levelchunksection.getFluidState(x & 15, y & 15, z & 15);
             FluidStates states = level.getChunk(x, y).getData(FLUID_STATES);
             
+            // Might have a recursions issue somewhere with this default value
             cir.setReturnValue(states.map().getOrDefault(new BlockPos(x, y, z), level.getBlockState(new BlockPos(x, y, z)).getFluidState()));
         }
     }
