@@ -30,6 +30,10 @@ import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FA
 @Mixin(SimpleWaterloggedBlock.class)
 public interface FFluidlogging_SimpleWaterloggedBlock {
     
+    /**
+     * Allows us to filter which fluids SimpleWaterloggedBlock is compatible with. Needed to jailbreak vanilla
+     * limitations, and makes a good hook for configurable white/blacklists.
+     */
     @WrapMethod(method = "canPlaceLiquid(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/Fluid;)Z")
     private boolean nnp_f_fluidlogging_canPlaceLiquid(Player player, BlockGetter getter, BlockPos pos, BlockState state, Fluid fluid, Operation<Boolean> original) {
         // Call this so any injected side effects can run, but ignore the return value because we don't care
@@ -41,6 +45,9 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         return fluid.getBucket() != Items.AIR;
     }
     
+    /**
+     * Allows SimpleWaterloggedBlock to use our attachment when player's attempt to manually fill them.
+     */
     @WrapMethod(method = "placeLiquid(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)Z")
     private boolean nnp_f_fluidlogging_placeLiquid(
             LevelAccessor level,
@@ -50,11 +57,13 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             FluidState fluidState,
             Operation<Boolean> original
     ) {
-        if (fluidState.getType() == Fluids.WATER) {
+        if (!state.getValue(BlockStateProperties.WATERLOGGED) && fluidState.getType() == Fluids.WATER) {
             
             return original.call(level, pos, state, fluidState);
         } else {
-            if (!state.getValue(BlockStateProperties.WATERLOGGED)) {
+            // Remove FluidState#isSource condition to allow flowing water to flow into block.
+            // Not vanilla behavior, and currently creates: infinite fluid exploit, always logs with water glitch
+            if (!state.getValue(BlockStateProperties.WATERLOGGED) && fluidState.isSource()) {
                 // Syncing to client is handled by the attachment
                 if (!level.isClientSide()) {
                     // Conditional has side effect
@@ -79,6 +88,9 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         }
     }
     
+    /**
+     * Allows SimpleWaterloggedBlock to use our attachment when player's attempt to manually drain them.
+     */
     @Inject(method = "pickupBlock(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/item/ItemStack;",
             at = @At("RETURN"), cancellable = true)
     private void nnp_f_fluidlogging_pickupBlock(Player player, LevelAccessor level, BlockPos pos, BlockState state, CallbackInfoReturnable<ItemStack> cir) {
@@ -91,7 +103,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         // Vanilla default for waterlogged blocks. For consistency with worldgenned waterlogged blocks, water is _not_
         // stored in our data structure. Instead, it's represented by a waterlogged=true block without a corresponding
         // entry in our attachment. Note that the original waterlogged value will be cleared by the time this condition
-        // is it, so we need to look at side effects (the vanilla return value)
+        // is hit, so we need to look at side effects (the vanilla return value)
         if (cir.getReturnValue().is(Items.WATER_BUCKET) && fluidState.isEmpty()) {
             
             cir.cancel();
