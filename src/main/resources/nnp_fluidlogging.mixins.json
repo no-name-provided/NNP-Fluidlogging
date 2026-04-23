@@ -10,6 +10,7 @@
     "FFluidlogging_LevelChunk",
     "FFluidlogging_LevelChunkSection",
     "FFluidlogging_LiquidBlock",
+    "FFluidlogging_ServerLevel",
     "FFluidlogging_SimpleWaterloggedBlock",
     "FFluidlogging_SlabBlock",
     "FFluidlogging_StairBlock"
