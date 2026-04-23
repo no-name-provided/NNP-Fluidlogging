@@ -46,9 +46,9 @@ public abstract class FFluidlogging_LevelChunk extends ChunkAccess {
      * @param cir Wrapper for return value. Triggers early return when used.
      */
     @Inject(method = "getFluidState(III)Lnet/minecraft/world/level/material/FluidState;",
-            at = @At("RETURN"), cancellable = true)
+            at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getFluidState(int x, int y, int z, CallbackInfoReturnable<FluidState> cir) {
-        if (cir.getReturnValue().isEmpty()) {
+//        if (cir.getReturnValue().isEmpty()) {
             
             // This appears to be the source of the severe lag. Probably has to do with bypassing the vanilla
             // section-by-section approach, which skips empty sections entirely
@@ -58,6 +58,6 @@ public abstract class FFluidlogging_LevelChunk extends ChunkAccess {
             
             // Might have a recursions issue somewhere with this default value
             cir.setReturnValue(states.map().getOrDefault(new BlockPos(x, y, z), level.getBlockState(new BlockPos(x, y, z)).getFluidState()));
-        }
+//        }
     }
 }

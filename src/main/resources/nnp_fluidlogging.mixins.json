@@ -5,10 +5,14 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "FFluidlogging_BlockBehavior",
+    "FFluidlogging_FlowingFluid",
     "FFluidlogging_LeavesBlock",
     "FFluidlogging_LevelChunk",
     "FFluidlogging_LevelChunkSection",
-    "FFluidlogging_SimpleWaterloggedBlock"
+    "FFluidlogging_LiquidBlock",
+    "FFluidlogging_SimpleWaterloggedBlock",
+    "FFluidlogging_SlabBlock",
+    "FFluidlogging_StairBlock"
   ],
   "client": [
     "FFluidlogging_LiquidBlockRenderer",
