@@ -8,27 +8,31 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * These mixins cause adjacent fluid logged blocks are treated as sources for (already) flowing fluids.
- * They also stop you from seeing the "face" of a fluid that should be "hidden" behind an adjacent block of the same
- * fluid (this is only a problem for mods that add transparent fluids, but it's a big graphical eyesore for those).
+ * These mixins cause adjacent fluid logged blocks are treated as sources for (already) flowing fluids. They also stop
+ * you from seeing the "face" of a fluid that should be "hidden" behind an adjacent block of the same fluid (this is
+ * only a problem for mods that add transparent fluids, but it's a big graphical eyesore for those).
  */
 @Mixin(LiquidBlockRenderer.class)
-public class FFluidlogging_LiquidBlockRenderer {
+abstract class FFluidlogging_LiquidBlockRenderer {
+    @Shadow @Final
+    protected abstract float getHeight(BlockAndTintGetter level, Fluid fluid, BlockPos pos, BlockState blockState, FluidState fluidState);
     
     @Inject(method = "shouldRenderFace(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;)Z",
-    at = @At("HEAD"), cancellable = true)
+            at = @At("HEAD"), cancellable = true)
     private static void nnp_f_fluidlogging_shouldRenderFace(BlockAndTintGetter level, BlockPos pos, FluidState fluidState, BlockState selfState, Direction direction, BlockState otherState, CallbackInfoReturnable<Boolean> cir) {
         
         cir.setReturnValue(!LiquidBlockRenderer.isFaceOccludedBySelf(level, pos, selfState, direction) && !fluidState.getType().isSame(level.getFluidState(pos.relative(direction)).getType()));
@@ -87,6 +91,32 @@ public class FFluidlogging_LiquidBlockRenderer {
         
         return NNPFluidlogging$checkFluidState(pos.relative(Direction.EAST), level);
     }
+    
+    /**
+     * This is actually a mixin for a wrapper for the "real" getHeight function. We make it pass the correct FluidState
+     * as the last parameter to the wrapped call. Fixes glitch where fluid blocks diagonal to fluidlogged blocks
+     * treat those blocks as having the incorrect fluidstate, and render with one corner too low (creating a
+     * visual gap in the LiquidBlocks rendered).
+     */
+    @Redirect(method = "getHeight(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/core/BlockPos;)F",
+    at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getHeight(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)F"))
+    private float nnp_f_fluidlogging_getHeight_fixReturn(LiquidBlockRenderer instance, BlockAndTintGetter level, Fluid fluid, BlockPos pos, BlockState blockState, FluidState fluidState) {
+        
+        return getHeight(level, fluid, pos, blockState, level.getFluidState(pos));
+    }
+    
+    /**
+     * Forces fluids to prefer our data structure when falling down off of a logged block. Precents gap between source
+     * and first flowing block.
+     */
+    @Redirect(method = "getHeight(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)F",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/material/Fluid;isSame(Lnet/minecraft/world/level/material/Fluid;)Z", ordinal = 1)
+    )
+    private boolean nnp_f_fluidlogging_getHeight_isSame(Fluid blockStateBasedFluidState, Fluid fluid, BlockAndTintGetter level, Fluid thisFluid, BlockPos pos) {
+        
+        return thisFluid.isSame(NNPFluidlogging$checkFluidState(pos.above(), level).getType());
+    }
+    
     
     /**
      * Convenience method for checking fluid states during rendering with some degree of efficiency.
