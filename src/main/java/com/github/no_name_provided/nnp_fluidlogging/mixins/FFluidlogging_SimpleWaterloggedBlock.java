@@ -66,18 +66,16 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             if (!state.getValue(BlockStateProperties.WATERLOGGED) && fluidState.isSource()) {
                 // Syncing to client is handled by the attachment
                 if (!level.isClientSide()) {
-                    // Conditional has side effect
-                    if (level.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_ALL)) {
-                        // Attempt to resolve bugs with flowing fluid; check may not be necessary
-                        if (fluidState.isSource()) {
-                            ChunkAccess chunk = level.getChunk(pos);
-                            chunk.getData(FLUID_STATES).map().put(pos.immutable(), fluidState);
-                            // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
-                            chunk.syncData(FLUID_STATES);
-                            chunk.setUnsaved(true);
-                        }
-                        level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
+                    // Attempt to resolve bugs with flowing fluid; check may not be necessary
+                    if (fluidState.isSource()) {
+                        ChunkAccess chunk = level.getChunk(pos);
+                        chunk.getData(FLUID_STATES).map().put(pos.immutable(), fluidState);
+                        // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
+                        chunk.syncData(FLUID_STATES);
+                        chunk.setUnsaved(true);
                     }
+                    level.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_ALL);
+                    level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
                 }
                 
                 return true;

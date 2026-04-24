@@ -50,14 +50,14 @@ public abstract class FFluidlogging_LevelChunk extends ChunkAccess {
     @Inject(method = "getFluidState(III)Lnet/minecraft/world/level/material/FluidState;",
             at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getFluidState(int x, int y, int z, CallbackInfoReturnable<FluidState> cir) {
-        // This appears to be the source of the severe lag. Probably has to do with bypassing the vanilla
+        // This appears to be a significant source of severe lag. Probably has to do with bypassing the vanilla
         // section-by-section approach, which skips empty sections entirely
         
         // We have to use section coordinates here, or we'll quietly grab the wrong attachment
         FluidStates states = level.getChunk(
                 SectionPos.blockToSectionCoord(x),
-                SectionPos.blockToSectionCoord(z)).getData(FLUID_STATES
-        );
+                SectionPos.blockToSectionCoord(z)
+        ).getData(FLUID_STATES);
         
         // Might have a recursion issue somewhere with this default value
         cir.setReturnValue(states.map().getOrDefault(new BlockPos(x, y, z), level.getBlockState(new BlockPos(x, y, z)).getFluidState()));

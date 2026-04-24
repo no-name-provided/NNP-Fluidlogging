@@ -58,16 +58,27 @@ abstract class FFluidlogging_LiquidBlock extends Block implements BucketPickup {
      * May not be necessary.
      */
     @WrapMethod(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;")
-    private BlockState nnp_f_fluidlogging_updateShape(BlockState bState, Direction direction, BlockState triggerPos, LevelAccessor level, BlockPos pos, BlockPos otherPos, Operation<BlockState> original) {
-        FluidState state = level.getChunk(pos).getData(FLUID_STATES).map().get(pos);
-        if (state != null) {
+    private BlockState nnp_f_fluidlogging_updateShape(BlockState oldState, Direction direction, BlockState newState, LevelAccessor level, BlockPos pos, BlockPos otherPos, Operation<BlockState> original) {
+        FluidState state = level.getFluidState(pos);
+        // Special case vanilla logic
+        if (!state.is(Fluids.WATER)) {
             level.scheduleTick(pos, state.getType(), state.getType().getTickDelay(level));
             
-            return bState;
+            return oldState;
         } else {
             
-            return original.call(bState, direction, triggerPos, level, pos, otherPos);
+            return original.call(oldState, direction, newState, level, pos, otherPos);
         }
+    }
+    
+    /**
+     * Force updates from neighbors to use our data structure. May be unnecessary.
+     */
+    @Redirect(method = "neighborChanged(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos;Z)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;I)V"))
+    private void nnp_f_fluidlogging_neighborChanged_fixScheduleTick(Level level, BlockPos pos, Fluid fluid, int tickDelay) {
+        Fluid trueFluid = level.getFluidState(pos).getType();
+        level.scheduleTick(pos, trueFluid, trueFluid.getTickDelay(level));
     }
     
     /**
