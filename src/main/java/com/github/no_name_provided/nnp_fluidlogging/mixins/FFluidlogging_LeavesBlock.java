@@ -13,10 +13,13 @@ public class FFluidlogging_LeavesBlock {
     
     @Inject(method = "getFluidState(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
             at = @At("RETURN"), cancellable = true)
-    private void nnp_f_fluidlogging_pickupBlock(BlockState state, CallbackInfoReturnable<FluidState> cir) {
+    private void nnp_f_fluidlogging_getFluidState(BlockState state, CallbackInfoReturnable<FluidState> cir) {
         // The return value form this directly controls almost everything that depends on fluid contents
         // (including visuals and ticking). Unfortunately, it isn't called with positional context,
         // so we need to look upstream.
+        
+        // We're leaving this here so we can "toggle it on" and compare differences in behavior. Makes it
+        // easier to see what we missed.
         
 //        cir.setReturnValue(Fluids.LAVA.defaultFluidState());
     }

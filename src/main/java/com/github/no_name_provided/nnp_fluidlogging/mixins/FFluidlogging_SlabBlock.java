@@ -1,6 +1,5 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
-import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
