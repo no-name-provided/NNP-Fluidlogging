@@ -17,6 +17,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,7 +30,6 @@ import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FA
  */
 @Mixin(SimpleWaterloggedBlock.class)
 public interface FFluidlogging_SimpleWaterloggedBlock {
-    
     /**
      * Allows us to filter which fluids SimpleWaterloggedBlock is compatible with. Needed to jailbreak vanilla
      * limitations, and makes a good hook for configurable white/blacklists.
