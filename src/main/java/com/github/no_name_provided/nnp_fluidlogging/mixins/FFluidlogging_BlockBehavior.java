@@ -9,8 +9,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.material.FluidState;
-import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,14 +31,14 @@ abstract class FFluidlogging_BlockBehavior {
             if (newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
                 //noinspection deprecation - #liquid is widely used in vanilla
                 if (oldState.liquid()) {
-                    level.setBlock(pos, newState.setValue(BlockStateProperties.WATERLOGGED, true), Block.UPDATE_ALL);
-                    
                     ChunkAccess chunk = level.getChunk(pos);
                     // We don't need to avoid #getFluidState for liquid blocks.
                     // Since they can't be logged, it's always correct
                     chunk.getData(FAttachments.FLUID_STATES).map().put(pos, oldState.getFluidState());
                     chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.setUnsaved(true);
+                    // This must come last, otherwise the incorrect FluidState will be used for the block updates
+                    level.setBlock(pos, newState.setValue(BlockStateProperties.WATERLOGGED, true), Block.UPDATE_ALL);
                 }
             } else {
                 // Clean up any lingering entry in our data structure. Shouldn't be necessary,
