@@ -28,7 +28,7 @@ import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FA
 abstract class FFluidlogging_LiquidBlock extends Block implements BucketPickup {
     @Shadow @Final public FlowingFluid fluid;
     
-    public FFluidlogging_LiquidBlock(Properties props) {
+    private FFluidlogging_LiquidBlock(Properties props) {
         super(props);
     }
     
@@ -90,14 +90,4 @@ abstract class FFluidlogging_LiquidBlock extends Block implements BucketPickup {
         FluidState state = level.getChunk(pos).getData(FLUID_STATES).map().get(pos);
         level.scheduleTick(pos, state == null ? Fluids.WATER : state.getType(), (state == null ? Fluids.WATER : state.getType()).getTickDelay(level));
     }
-    
-//    /**
-//     * Breaks vanilla flow. Force neighbor updates to prefer our data structure. May not be necessary.
-//     */
-//    @Redirect(method = "neighborChanged(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos;Z)V",
-//            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;I)V"))
-//    private void nnp_f_fluidlogging_neighborChanged_fixScheduleTick(Level level, BlockPos pos, Fluid fluid, int tickDelay) {
-//        FluidState state = level.getChunk(pos).getData(FLUID_STATES).map().get(pos);
-//        level.scheduleTick(pos, state == null ? Fluids.WATER : state.getType(), (state == null ? Fluids.WATER : state.getType()).getTickDelay(level));
-//    }
 }

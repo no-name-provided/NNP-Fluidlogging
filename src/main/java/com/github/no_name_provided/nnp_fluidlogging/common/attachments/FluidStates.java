@@ -15,7 +15,7 @@ public record FluidStates(HashMap<BlockPos, FluidState> map) {
     public static Codec<FluidStates> CODEC = RecordCodecBuilder.create(inst ->
             inst.group(
                     Codec.unboundedMap(
-                                    // Unbound map keys must being with strings (or things built on them)
+                                    // Unbound map keys must begin with strings (or things built on them)
                                     Codec.STRING
                                             .xmap(Long::parseLong, String::valueOf)
                                             .xmap(BlockPos::of, BlockPos::asLong),

@@ -29,11 +29,11 @@ import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FA
  * mixins ultimately boil down to replacing hardcoded BlockState#getFluidState with calls to this.
  */
 @Mixin(LevelChunk.class)
-public abstract class FFluidlogging_LevelChunk extends ChunkAccess {
+abstract class FFluidlogging_LevelChunk extends ChunkAccess {
     @Final @Shadow
     Level level;
     
-    public FFluidlogging_LevelChunk(ChunkPos pos, UpgradeData data, LevelHeightAccessor heightGetter, Registry<Biome> biomeRegistry, long rand, @Nullable LevelChunkSection[] levelChunkSections, @Nullable BlendingData blendingData) {
+    private FFluidlogging_LevelChunk(ChunkPos pos, UpgradeData data, LevelHeightAccessor heightGetter, Registry<Biome> biomeRegistry, long rand, @Nullable LevelChunkSection[] levelChunkSections, @Nullable BlendingData blendingData) {
         super(pos, data, heightGetter, biomeRegistry, rand, levelChunkSections, blendingData);
     }
     
