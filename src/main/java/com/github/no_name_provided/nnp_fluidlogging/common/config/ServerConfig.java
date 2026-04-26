@@ -23,8 +23,8 @@ public class ServerConfig {
                             "Empty by default. Water cannot be blacklisted.")
                     .defineListAllowEmpty(
                             "blacklist.nnp_fluidlogging",
-                            new ArrayList<>(List.of(ServerConfig.supplyFluid())),
-                            ServerConfig::supplyFluid,
+                            new ArrayList<>(List.of(ServerConfig.supplyFluid(true))),
+                            () -> ServerConfig.supplyFluid(false),
                             ServerConfig::validateFluid
                     );
     
@@ -32,10 +32,10 @@ public class ServerConfig {
     
     public static List<? extends String> blacklistedFluids;
     
-    protected static String supplyFluid() {
+    protected static String supplyFluid(boolean defaultFluid) {
         
         //noinspection OptionalGetWithoutIsPresent - We're literally grabbing the water field. It'll be fine (TM).
-        return BuiltInRegistries.FLUID.getResourceKey(Fluids.LAVA).get().location().toString();
+        return BuiltInRegistries.FLUID.getResourceKey(defaultFluid ? Fluids.EMPTY : Fluids.LAVA).get().location().toString();
     }
     
     protected static boolean validateFluid(Object element) {
