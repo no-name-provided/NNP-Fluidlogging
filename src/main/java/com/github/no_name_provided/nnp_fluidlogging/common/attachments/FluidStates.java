@@ -10,6 +10,13 @@ import net.minecraft.world.level.material.FluidState;
 
 import java.util.HashMap;
 
+/**
+ * A map from BlockPos to FluidState. Not prepopulated - a position without a fluidlogged block is a missing entry. Not
+ * intended for waterlogged blocks.
+ * <p>
+ * This is stored in a record because it will be used for attachments, and those must be "immutable".
+ * </p>
+ */
 public record FluidStates(HashMap<BlockPos, FluidState> map) {
     
     public static Codec<FluidStates> CODEC = RecordCodecBuilder.create(inst ->

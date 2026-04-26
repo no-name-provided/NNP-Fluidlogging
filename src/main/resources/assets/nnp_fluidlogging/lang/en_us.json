@@ -1,3 +1,12 @@
 {
 
+  "nnp_fluidlogging.configuration.nnp_fluidlogging": "Blacklist",
+  "nnp_fluidlogging.configuration.section.nnp.fluidlogging.server.toml.title": "NNP FlC Server Config",
+  "nnp_fluidlogging.configuration.blacklist": "Blacklisted Fluids",
+  "nnp_fluidlogging.configuration.blacklist.tooltip": "By Resourcelocation",
+  "nnp_fluidlogging.configuration.blacklist.button": "Fluids",
+  "nnp_fluidlogging.configuration.section.nnp.fluidlogging.server.toml": "This also isn't used anywhere?",
+  "nnp_fluidlogging.configuration.nnp_fluidlogging.tooltip": "Blacklisted Fluids (Water cannot be blacklisted)",
+  "nnp_fluidlogging.configuration.title": "This isn't used anywhere?",
+  "nnp_fluidlogging.configuration.nnp_fluidlogging.button": "Configure Blacklist"
 }

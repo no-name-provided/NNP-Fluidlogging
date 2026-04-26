@@ -1,9 +1,12 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
+import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -17,11 +20,12 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Optional;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 
@@ -39,10 +43,16 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         // Call this so any injected side effects can run, but ignore the return value because we don't care
         original.call(player, getter, pos, state, fluid);
         
-        // TODO: White/Blacklist
+        boolean isBlacklisted = false;
+        Optional<ResourceKey<Fluid>> key = BuiltInRegistries.FLUID.getResourceKey(fluid);
+        if (key.isPresent()) {
+            //noinspection SuspiciousMethodCalls - This is stupid config nonsense. There's no type ambiguity.
+            isBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().location().toString());
+        }
+        
         // Filter out fluids without buckets, to avoid an entire category of potential errors.
         // Default bucket is Items.AIR. Might also need to null check
-        return fluid.getBucket() != Items.AIR;
+        return fluid.getBucket() != Items.AIR && !isBlacklisted;
     }
     
     /**
