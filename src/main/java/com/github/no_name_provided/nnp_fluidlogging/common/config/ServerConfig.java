@@ -34,7 +34,7 @@ public class ServerConfig {
     
     protected static String supplyFluid(boolean defaultFluid) {
         
-        //noinspection OptionalGetWithoutIsPresent - We're literally grabbing the water field. It'll be fine (TM).
+        //noinspection OptionalGetWithoutIsPresent - We're literally grabbing statically initialized fields. It'll be fine (TM).
         return BuiltInRegistries.FLUID.getResourceKey(defaultFluid ? Fluids.EMPTY : Fluids.LAVA).get().location().toString();
     }
     
