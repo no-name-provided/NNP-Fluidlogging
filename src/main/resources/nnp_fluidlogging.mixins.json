@@ -7,6 +7,7 @@
     "FFluidlogging_BaseRailBlock",
     "FFluidlogging_BlockBehavior",
     "FFluidlogging_FlowingFluid",
+    "FFluidlogging_IBlockExtension",
     "FFluidlogging_LeavesBlock",
     "FFluidlogging_LevelChunk",
     "FFluidlogging_LiquidBlock",

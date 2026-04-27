@@ -1,9 +1,12 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,13 +16,32 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LeavesBlock.class)
-abstract class FFluidlogging_LeavesBlock {
+abstract class FFluidlogging_LeavesBlock extends Block {
+    protected FFluidlogging_LeavesBlock(Properties props) {
+        super(props);
+    }
     
     @Redirect(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
     at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/LevelAccessor;scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;I)V"))
     private void nnp_f_fluidlogging_getFluidState(LevelAccessor level, BlockPos pos, Fluid fluid, int tickDelay) {
         Fluid trueFluid = level.getFluidState(pos).getType();
         level.scheduleTick(pos, trueFluid, trueFluid.getTickDelay(level));
+    }
+    
+    /**
+     * Fails to fix weird failure to update lights, but at least allows fluid logged leaves to block light? Might be
+     * better without this.
+     */
+    @Inject(method = "getLightBlock(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I",
+            at = @At(value = "HEAD"), cancellable = true)
+    private void nnp_f_fluidlogging_getLightBlock(BlockState state, BlockGetter getter, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
+        if (state.getValue(BlockStateProperties.WATERLOGGED)) {
+            
+            cir.setReturnValue(super.getLightBlock(state, getter, pos));
+        } else {
+            
+            cir.setReturnValue(1);
+        }
     }
     
     @Inject(method = "getFluidState(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
