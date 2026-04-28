@@ -36,10 +36,10 @@ abstract class FFluidlogging_LeavesBlock extends Block {
             at = @At(value = "HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getLightBlock(BlockState state, BlockGetter getter, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
         if (state.getValue(BlockStateProperties.WATERLOGGED)) {
-            
+
             cir.setReturnValue(super.getLightBlock(state, getter, pos));
         } else {
-            
+
             cir.setReturnValue(1);
         }
     }
