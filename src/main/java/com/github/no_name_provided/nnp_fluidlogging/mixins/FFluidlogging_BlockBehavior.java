@@ -2,6 +2,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
+import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -31,14 +32,17 @@ abstract class FFluidlogging_BlockBehavior {
             if (newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
                 //noinspection deprecation - #liquid is widely used in vanilla
                 if (oldState.liquid()) {
-                    ChunkAccess chunk = level.getChunk(pos);
-                    // We don't need to avoid #getFluidState for liquid blocks.
-                    // Since they can't be logged, it's always correct
-                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, oldState.getFluidState());
-                    chunk.syncData(FAttachments.FLUID_STATES);
-                    chunk.setUnsaved(true);
-                    // This must come last, otherwise the incorrect FluidState will be used for the block updates
-                    level.setBlock(pos, newState.setValue(BlockStateProperties.WATERLOGGED, true), Block.UPDATE_ALL);
+                    // Filter out flowing liquids... unless we're going to try to handle them
+                    if (oldState.getFluidState().isSource() || ServerConfig.flowingFluidsCanBeWaterlogged) {
+                        ChunkAccess chunk = level.getChunk(pos);
+                        // We don't need to avoid #getFluidState for liquid blocks.
+                        // Since they can't be logged, it's always correct
+                        chunk.getData(FAttachments.FLUID_STATES).map().put(pos, oldState.getFluidState());
+                        chunk.syncData(FAttachments.FLUID_STATES);
+                        chunk.setUnsaved(true);
+                        // This must come last, otherwise the incorrect FluidState will be used for the block updates
+                        level.setBlock(pos, newState.setValue(BlockStateProperties.WATERLOGGED, true), Block.UPDATE_ALL);
+                    }
                 }
             } else {
                 // Clean up any lingering entry in our data structure. Shouldn't be necessary,

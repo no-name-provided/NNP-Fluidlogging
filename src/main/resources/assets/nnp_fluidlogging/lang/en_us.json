@@ -11,5 +11,8 @@
   "nnp_fluidlogging.configuration.nnp_fluidlogging.button": "Configure Blacklist",
   "nnp_fluidlogging.configuration.consider_fluid_light": "Logged Fluids Emit Light",
   "nnp_fluidlogging.configuration.consider_fluid_light.button": "Toggle",
-  "nnp_fluidlogging.configuration.consider_fluid_light.tooltip": "Use fluid light?"
+  "nnp_fluidlogging.configuration.consider_fluid_light.tooltip": "Use fluid light?",
+  "nnp_fluidlogging.configuration.flowing_fluids_log": "Flowing Fluids Can log",
+  "nnp_fluidlogging.configuration.flowing_fluids_log.tooltip": "WIP",
+  "nnp_fluidlogging.configuration.flowing_fluids_log.button": "Toggle"
 }

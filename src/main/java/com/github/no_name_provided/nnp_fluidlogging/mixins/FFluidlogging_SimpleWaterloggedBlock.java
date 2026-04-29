@@ -46,7 +46,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         boolean isBlacklisted = false;
         Optional<ResourceKey<Fluid>> key = BuiltInRegistries.FLUID.getResourceKey(fluid);
         if (key.isPresent()) {
-            //noinspection SuspiciousMethodCalls - This is stupid config nonsense. There's no type ambiguity.
             isBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().location().toString());
         }
         
@@ -67,6 +66,12 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             FluidState fluidState,
             Operation<Boolean> original
     ) {
+        // Prevent partial waterlogging
+        if (!ServerConfig.flowingFluidsCanBeWaterlogged && !fluidState.isSource()) {
+            
+            return false;
+        }
+        // Handle actual behavior
         if (!state.getValue(BlockStateProperties.WATERLOGGED) && fluidState.getType() == Fluids.WATER) {
             
             return original.call(level, pos, state, fluidState);
