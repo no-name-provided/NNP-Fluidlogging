@@ -23,19 +23,24 @@ public class ServerConfig {
                             "Empty by default. Water cannot be blacklisted.")
                     .defineListAllowEmpty(
                             "blacklist.nnp_fluidlogging",
-                            new ArrayList<>(List.of(ServerConfig.supplyFluid(true))),
-                            () -> ServerConfig.supplyFluid(false),
+                            new ArrayList<>(),
+                            ServerConfig::supplyFluid,
                             ServerConfig::validateFluid
                     );
+    private static final ModConfigSpec.BooleanValue CONSIDER_FLUID_LIGHT_LEVEL =
+            BUILDER.comment("Should fluidlogged blocks emit the higher of blocklight and fluid light?",
+                    "Significant performance penalty.")
+                    .define("consider_fluid_light." + MODID, true);
     
     public static final ModConfigSpec SPEC = BUILDER.build();
     
     public static List<? extends String> blacklistedFluids;
+    public static boolean considerFluidLightLevel;
     
-    protected static String supplyFluid(boolean defaultFluid) {
+    protected static String supplyFluid() {
         
         //noinspection OptionalGetWithoutIsPresent - We're literally grabbing statically initialized fields. It'll be fine (TM).
-        return BuiltInRegistries.FLUID.getResourceKey(defaultFluid ? Fluids.EMPTY : Fluids.LAVA).get().location().toString();
+        return BuiltInRegistries.FLUID.getResourceKey(Fluids.LAVA).get().location().toString();
     }
     
     protected static boolean validateFluid(Object element) {
@@ -53,6 +58,7 @@ public class ServerConfig {
     static void onConfigUpdate(final ModConfigEvent event) {
         if (!(event instanceof ModConfigEvent.Unloading) && event.getConfig().getType() == ModConfig.Type.SERVER) {
             blacklistedFluids = BLACKLISTED_FLUIDS.get();
+            considerFluidLightLevel = CONSIDER_FLUID_LIGHT_LEVEL.get();
         }
     }
 }

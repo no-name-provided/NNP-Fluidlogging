@@ -1,15 +1,17 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
+import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.common.extensions.IBlockExtension;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
 @Mixin(IBlockExtension.class)
 public interface FFluidlogging_IBlockExtension {
@@ -22,7 +24,7 @@ public interface FFluidlogging_IBlockExtension {
             at = @At("TAIL"), cancellable = true)
     private void nnp_f_fluidlogging_hasDynamicLightEmission(BlockState state, CallbackInfoReturnable<Boolean> cir) {
         
-        cir.setReturnValue(state.hasProperty(BlockStateProperties.WATERLOGGED));
+        cir.setReturnValue(state.hasProperty(WATERLOGGED));
     }
     
     /**
@@ -32,21 +34,24 @@ public interface FFluidlogging_IBlockExtension {
      */
     @Inject(method = "getLightEmission(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I",
             at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_getLightEmission(BlockState state, BlockGetter level, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
-        
-        //noinspection deprecation - used in the method we're injecting into
-        cir.setReturnValue(Math.max(
-                state.getLightEmission(),
-                // Due to an unresolvable update execution order issue, we need to manually differentiate between logged and empty states
-                // We need to update the fluid state before the block to make most things work, but we need to not use the new fluid state when checking to see if light levels changed
-                // Could alternatively be solved with a mixin to the light engine method that checks to see if there were any changes before calling the update queuer.
-                //
-                // One of the BlockGetter variants we can be passed during worldgen tends to create a server-side thread
-                // lock when we call Level#getFluidState on it, so we limit ourselves to full-fledged level accessors.
-                // Might cause issues with worldgen blocks until the first update. It's possible this isn't calling our
-                // #getFluidState mixin, and could be better resolved by mixing in a redirect. ProtoChunk#getFluidState
-                // seems like a likely culprit
-                state.hasProperty(BlockStateProperties.WATERLOGGED) && state.getValue(BlockStateProperties.WATERLOGGED) ? (this instanceof LevelAccessor ? level.getFluidState(pos).getFluidType().getLightLevel() : 0) : 0
-        ));
+    private void nnp_f_fluidlogging_getLightEmission(BlockState state, BlockGetter getter, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
+        if (ServerConfig.considerFluidLightLevel) {
+            // Anything that uses the ServerChunkCache during worldgen (like Level#getFluidState) will
+            // create a server hang at
+            // `return CompletableFuture.<ChunkAccess>supplyAsync(() -> this.getChunk(p_8360_, p_8361_, p_330876_, p_8363_), this.mainThreadProcessor).join();`
+            // unless it's run on the same thread as the (main) server. This isn't an issue with proto chunks, etc.
+            // Since chunks aren't thread safe, we may want to use a separate data structure for this down the line (like AuxLightManager)
+            if (!(getter instanceof ServerLevel level) || level.getServer().isSameThread()) {
+                //noinspection deprecation - used in the method we're injecting into
+                cir.setReturnValue(Math.max(
+                        state.getLightEmission(),
+                        // Due to an unresolvable update execution order issue, we need to manually differentiate between logged and empty states
+                        // We need to update the fluid state before the block to make most things work, but we need to not use the new fluid state when checking to see if light levels changed
+                        // Could alternatively be solved with a mixin to the light engine method that checks to see if there were any changes before calling the update queuer.
+                        state.hasProperty(WATERLOGGED) && state.getValue(WATERLOGGED) ?
+                                getter.getFluidState(pos).getFluidType().getLightLevel() : 0
+                ));
+            }
+        }
     }
 }
