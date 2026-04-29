@@ -8,8 +8,8 @@
   "nnp_fluidlogging.configuration.section.nnp.fluidlogging.server.toml": "This also isn't used anywhere?",
   "nnp_fluidlogging.configuration.nnp_fluidlogging.tooltip": "Edit",
   "nnp_fluidlogging.configuration.title": "This isn't used anywhere?",
-  "nnp_fluidlogging.configuration.nnp_fluidlogging.button": "Configure Blacklist (Water can't be blacklisted)",
-  "nnp_fluidlogging.configuration.consider_fluid_light": "Should logged fluids emit light?",
+  "nnp_fluidlogging.configuration.nnp_fluidlogging.button": "Configure Blacklist",
+  "nnp_fluidlogging.configuration.consider_fluid_light": "Logged Fluids Emit Light",
   "nnp_fluidlogging.configuration.consider_fluid_light.button": "Toggle",
   "nnp_fluidlogging.configuration.consider_fluid_light.tooltip": "Use fluid light?"
 }
