@@ -6,8 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(NNP_Fluidlogging.MODID)
@@ -23,8 +22,14 @@ public class NNP_Fluidlogging {
     public NNP_Fluidlogging(IEventBus modEventBus, ModContainer modContainer) {
         // Add all our deferred registries to the mod registration queue
         FAttachments.register(modEventBus);
-        //Register our configs
+        // Register our configs.
+        // The file itself is registered on both sides
         modContainer.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
-        modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        // But the screen is only available on clients.
+        // Neo is stupid about this, so we need to manually wrap the call in a conditionally loaded class.
+        // Alternatively, consider using separate entry points
+        if (FMLEnvironment.dist.isClient()) {
+            ServerConfig.registerExtensionPoint(modContainer);
+        }
     }
 }
