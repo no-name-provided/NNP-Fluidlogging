@@ -51,7 +51,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         
         // Filter out fluids without buckets, to avoid an entire category of potential errors.
         // Default bucket is Items.AIR. Might also need to null check
-        return fluid.getBucket() != Items.AIR && !isBlacklisted;
+        return !isBlacklisted;
     }
     
     /**
@@ -76,19 +76,16 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             
             return original.call(level, pos, state, fluidState);
         } else {
-            // Remove FluidState#isSource condition to allow flowing water to flow into block.
-            // Not vanilla behavior, and currently creates: infinite fluid exploit, always logs with water glitch
-            if (!state.getValue(BlockStateProperties.WATERLOGGED) && fluidState.isSource()) {
+            // Remove FluidState#isSource condition to allow flowing water to flow into block. Not vanilla behavior
+            if (!state.getValue(BlockStateProperties.WATERLOGGED) && (fluidState.isSource() || ServerConfig.flowingFluidsCanBeWaterlogged)) {
                 // Syncing to client is handled by the attachment
                 if (!level.isClientSide()) {
-                    // Attempt to resolve bugs with flowing fluid; check may not be necessary
-                    if (fluidState.isSource()) {
-                        ChunkAccess chunk = level.getChunk(pos);
-                        chunk.getData(FLUID_STATES).map().put(pos.immutable(), fluidState);
-                        // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
-                        chunk.syncData(FLUID_STATES);
-                        chunk.setUnsaved(true);
-                    }
+                    ChunkAccess chunk = level.getChunk(pos);
+                    chunk.getData(FLUID_STATES).map().put(pos.immutable(), fluidState);
+                    // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
+                    chunk.syncData(FLUID_STATES);
+                    chunk.setUnsaved(true);
+                    
                     level.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_ALL);
                     level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
                 }
@@ -123,6 +120,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Only matches source blocks (flowing blocks are a different class)
         } else if (fluidState.is(Fluids.LAVA)) {
             states.map().remove(pos);
+            chunk.syncData(FLUID_STATES);
             chunk.setUnsaved(true);
             level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
             
@@ -130,6 +128,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
             states.map().remove(pos);
+            chunk.syncData(FLUID_STATES);
             chunk.setUnsaved(true);
             level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
             

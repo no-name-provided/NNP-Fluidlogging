@@ -1,5 +1,6 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
+import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.shorts.Short2BooleanMap;
@@ -9,7 +10,10 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
@@ -17,6 +21,7 @@ import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
@@ -127,5 +132,50 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         }
         
         cir.cancel();
+    }
+    
+    @Inject(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
+    at = @At("HEAD"), cancellable = true)
+    private void nnp_f_fluidlogging_tick(Level level, BlockPos pos, FluidState state, CallbackInfo ci) {
+        FlowingFluid thisFluid = ((FlowingFluid)(Object)this);
+        BlockState blockState = level.getBlockState(pos);
+        if (!state.isSource()) {
+            FluidState newFluidState = thisFluid.getNewLiquid(level, pos, level.getBlockState(pos));
+            int i = thisFluid.getSpreadDelay(level, pos, state, newFluidState);
+            if (newFluidState.isEmpty()) {
+                // Make sure we use (and update) our data structure
+                state = newFluidState;
+                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                    level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
+                    ChunkAccess chunk = level.getChunkAt(pos);
+                    chunk.getData(FAttachments.FLUID_STATES).map().remove(pos);
+                    chunk.syncData(FAttachments.FLUID_STATES);
+                    level.getChunk(pos).setUnsaved(true);
+                } else {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                }
+            } else if (!newFluidState.equals(state)) {
+                // Make sure we use (and update) our data structure
+                state = newFluidState;
+                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                    if (!blockState.getValue(BlockStateProperties.WATERLOGGED)) {
+                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), 3);
+                    }
+                    ChunkAccess chunk = level.getChunkAt(pos);
+                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, state);
+                    chunk.syncData(FAttachments.FLUID_STATES);
+                    level.getChunk(pos).setUnsaved(true);
+                } else {
+                    BlockState blockstate = newFluidState.createLegacyBlock();
+                    level.setBlock(pos, blockstate, 2);
+                }
+                level.scheduleTick(pos, newFluidState.getType(), i);
+                level.updateNeighborsAt(pos, newFluidState.createLegacyBlock().getBlock());
+            }
+        }
+        
+        thisFluid.spread(level, pos, state);
+        
+        ci.cancel();
     }
 }

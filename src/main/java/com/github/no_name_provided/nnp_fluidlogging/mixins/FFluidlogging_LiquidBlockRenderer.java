@@ -106,7 +106,7 @@ abstract class FFluidlogging_LiquidBlockRenderer {
     }
     
     /**
-     * Forces fluids to prefer our data structure when falling down off of a logged block. Precents gap between source
+     * Forces fluids to prefer our data structure when falling down off of a logged block. Prevents gap between source
      * and first flowing block.
      */
     @Redirect(method = "getHeight(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)F",

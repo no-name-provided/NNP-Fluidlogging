@@ -16,7 +16,8 @@ public class NNP_Fluidlogging {
     
     /**
      * Mod entry point. Some initialization can be done here. Registration <i>is</i> done here.
-     * @param modEventBus The event bus associated with this mod.
+     *
+     * @param modEventBus  The event bus associated with this mod.
      * @param modContainer The FML container associated with this mod.
      */
     public NNP_Fluidlogging(IEventBus modEventBus, ModContainer modContainer) {

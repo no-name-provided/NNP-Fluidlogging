@@ -16,8 +16,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Important mixins - clear fluid from data structure when logged blocks are broken. Attempt to apply fluid
- * light levels.
+ * Important mixins - clear fluid from data structure when logged blocks are broken.
  */
 @Mixin(BlockBehaviour.class)
 abstract class FFluidlogging_BlockBehavior {
