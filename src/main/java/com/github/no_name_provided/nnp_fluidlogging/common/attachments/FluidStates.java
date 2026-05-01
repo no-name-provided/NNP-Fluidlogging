@@ -35,7 +35,4 @@ public record FluidStates(HashMap<BlockPos, FluidState> map) {
     
     public static StreamCodec<RegistryFriendlyByteBuf, FluidStates> STREAM_CODEC =
             ByteBufCodecs.fromCodecWithRegistries(CODEC);
-    
-    public void mao() {
-    }
 }

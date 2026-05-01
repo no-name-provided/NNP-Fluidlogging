@@ -34,7 +34,7 @@ public class ServerConfig {
             BUILDER.comment("Should fluidlogged blocks emit the higher of blocklight and fluid light?",
                             "Significant performance penalty.")
                     .define("consider_fluid_light." + MODID, true);
-    private static final ModConfigSpec.BooleanValue FLOWING_FLUIDS_CAN_BE_WATERLOGGED =
+    private static final ModConfigSpec.BooleanValue FLOWING_FLUIDS_CAN_LOG =
             BUILDER.comment("Can partial fluid blocks waterlog (WIP)")
                     .define("flowing_fluids_log." + MODID, false);
     
@@ -42,7 +42,7 @@ public class ServerConfig {
     
     public static List<? extends String> blacklistedFluids;
     public static boolean considerFluidLightLevel;
-    public static boolean flowingFluidsCanBeWaterlogged;
+    public static boolean flowingFluidsCanLog;
     
     protected static String supplyFluid() {
         
@@ -66,7 +66,7 @@ public class ServerConfig {
         if (!(event instanceof ModConfigEvent.Unloading) && event.getConfig().getType() == ModConfig.Type.SERVER) {
             blacklistedFluids = BLACKLISTED_FLUIDS.get();
             considerFluidLightLevel = CONSIDER_FLUID_LIGHT_LEVEL.get();
-            flowingFluidsCanBeWaterlogged = FLOWING_FLUIDS_CAN_BE_WATERLOGGED.get();
+            flowingFluidsCanLog = FLOWING_FLUIDS_CAN_LOG.get();
         }
     }
     

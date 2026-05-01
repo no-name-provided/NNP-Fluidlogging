@@ -32,7 +32,7 @@ abstract class FFluidlogging_BlockBehavior {
                 //noinspection deprecation - #liquid is widely used in vanilla
                 if (oldState.liquid()) {
                     // Filter out flowing liquids... unless we're going to try to handle them
-                    if (oldState.getFluidState().isSource() || ServerConfig.flowingFluidsCanBeWaterlogged) {
+                    if (oldState.getFluidState().isSource() || ServerConfig.flowingFluidsCanLog) {
                         ChunkAccess chunk = level.getChunk(pos);
                         // We don't need to avoid #getFluidState for liquid blocks.
                         // Since they can't be logged, it's always correct

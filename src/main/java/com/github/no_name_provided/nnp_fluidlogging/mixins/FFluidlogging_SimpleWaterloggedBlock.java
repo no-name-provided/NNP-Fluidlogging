@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
@@ -24,10 +25,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
-import static net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL_FLOWING;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
 /**
@@ -67,55 +68,49 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             FluidState fluidState,
             Operation<Boolean> original
     ) {
-        // Prevent partial waterlogging
-        if (!ServerConfig.flowingFluidsCanBeWaterlogged && !fluidState.isSource()) {
-            
-            return false;
-        }
-        // Handle normal behavior
-        if ((!state.getValue(WATERLOGGED) || ServerConfig.flowingFluidsCanBeWaterlogged) && fluidState.getType() == Fluids.WATER) {
-            // Allow for the possibility of partial water blocks, and allow a full bucket to overwrite
-            ChunkAccess chunk = level.getChunk(pos);
-            FluidStates fluidStates = chunk.getData(FLUID_STATES);
-            if (!level.isClientSide() && (fluidState.isSource() || fluidState.getValue(LEVEL_FLOWING) > fluidStates.map().get(pos).getValue(LEVEL_FLOWING))) {
-                if (fluidState.isSource()) {
-                    // This is handled by vanilla defaults
-                    fluidStates.map().remove(pos.immutable());
-                    
-                    return original.call(level, pos, state, fluidState);
+        // Get current states
+        // Ensure we don't accidentally pass a MutableBlockPos to a buffer, since they violate the Liskov Substitution Principle
+        BlockPos iPos = pos.immutable();
+        ChunkAccess chunk = level.getChunk(iPos);
+        Map<BlockPos, FluidState> fluidStates = chunk.getData(FLUID_STATES).map();
+        FluidState oldFluidState = fluidStates.getOrDefault(iPos, state.getFluidState());
+        boolean wasLogged = state.getValue(WATERLOGGED);
+        
+        if (
+            // Don't let players waste buckets
+                (fluidState.isSource() && !oldFluidState.isSource()) ||
+                        // but maybe allow fluids to flow in
+                        (ServerConfig.flowingFluidsCanLog && !fluidState.isSource())
+        ) {
+            if (!level.isClientSide()) {
+                // Special case fully waterlogged blocks
+                if (fluidState.is(Fluids.WATER) && fluidState.isSource()) {
+                    // Only sync if we actually update our structure
+                    if (fluidStates.remove(iPos) != null) {
+                        chunk.syncData(FLUID_STATES);
+                        chunk.setUnsaved(true);
+                    }
+                    // Handle the rest
                 } else {
-                    // This needs to be stored in our structure
-                    fluidStates.map().put(pos.immutable(), fluidState);
+                    fluidStates.put(iPos, fluidState);
+                    chunk.syncData(FLUID_STATES);
+                    chunk.setUnsaved(true);
                 }
-                // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
-                chunk.syncData(FLUID_STATES);
-                chunk.setUnsaved(true);
-                // Force a block update
-                level.setBlock(pos, state.setValue(WATERLOGGED, true), Block.UPDATE_ALL);
+                // Unlike block entities, block states don't actually send updates unless they change
+                // Even changing them and immediately changing them back doesn't seem to cause an update
+                if (wasLogged && level instanceof Level realLevel) {
+                    // Since Level#markAndNotify, et at. don't seem to work (on either side), we are at an impasse
+                }
+                // If these run on the client, they'll trigger before the attachment syncs and render the wrong fluid
+                // until a neighbor updates the BlockState
+                level.setBlock(iPos, state.setValue(WATERLOGGED, true), Block.UPDATE_ALL);
+                level.scheduleTick(iPos, fluidState.getType(), fluidState.getType().getTickDelay(level));
             }
             
             return true;
-        } else {
-            // Remove FluidState#isSource condition to allow flowing water to flow into block. Not vanilla behavior
-            if ((!state.getValue(WATERLOGGED) || ServerConfig.flowingFluidsCanBeWaterlogged) && (fluidState.isSource() || ServerConfig.flowingFluidsCanBeWaterlogged)) {
-                // Syncing to client is handled by the attachment
-                if (!level.isClientSide()) {
-                    ChunkAccess chunk = level.getChunk(pos);
-                    chunk.getData(FLUID_STATES).map().put(pos.immutable(), fluidState);
-                    // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
-                    chunk.syncData(FLUID_STATES);
-                    chunk.setUnsaved(true);
-                    
-                    level.setBlock(pos, state.setValue(WATERLOGGED, Boolean.TRUE), Block.UPDATE_ALL);
-                    level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
-                }
-                
-                return true;
-            } else {
-                
-                return false;
-            }
         }
+        
+        return false;
     }
     
     /**
