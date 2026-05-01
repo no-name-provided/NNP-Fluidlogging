@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -146,28 +147,30 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                 // Make sure we use (and update) our data structure
                 state = newFluidState;
                 if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
+                    if (blockState.getValue(BlockStateProperties.WATERLOGGED)) {
+                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
+                    }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).map().remove(pos);
                     chunk.syncData(FAttachments.FLUID_STATES);
-                    level.getChunk(pos).setUnsaved(true);
+                    chunk.setUnsaved(true);
                 } else {
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 }
             } else if (!newFluidState.equals(state)) {
                 // Make sure we use (and update) our data structure
                 state = newFluidState;
                 if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
                     if (!blockState.getValue(BlockStateProperties.WATERLOGGED)) {
-                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), 3);
+                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).map().put(pos, state);
                     chunk.syncData(FAttachments.FLUID_STATES);
-                    level.getChunk(pos).setUnsaved(true);
+                    chunk.setUnsaved(true);
                 } else {
                     BlockState blockstate = newFluidState.createLegacyBlock();
-                    level.setBlock(pos, blockstate, 2);
+                    level.setBlock(pos, blockstate, Block.UPDATE_CLIENTS);
                 }
                 level.scheduleTick(pos, newFluidState.getType(), i);
                 level.updateNeighborsAt(pos, newFluidState.createLegacyBlock().getBlock());

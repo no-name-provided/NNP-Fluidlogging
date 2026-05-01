@@ -15,7 +15,6 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
@@ -28,6 +27,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Optional;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL_FLOWING;
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
 /**
  * Important mixins - allow SimpleWaterloggedBlock to interact with our attachment.
@@ -71,13 +72,32 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             
             return false;
         }
-        // Handle actual behavior
-        if (!state.getValue(BlockStateProperties.WATERLOGGED) && fluidState.getType() == Fluids.WATER) {
+        // Handle normal behavior
+        if ((!state.getValue(WATERLOGGED) || ServerConfig.flowingFluidsCanBeWaterlogged) && fluidState.getType() == Fluids.WATER) {
+            // Allow for the possibility of partial water blocks, and allow a full bucket to overwrite
+            ChunkAccess chunk = level.getChunk(pos);
+            FluidStates fluidStates = chunk.getData(FLUID_STATES);
+            if (!level.isClientSide() && (fluidState.isSource() || fluidState.getValue(LEVEL_FLOWING) > fluidStates.map().get(pos).getValue(LEVEL_FLOWING))) {
+                if (fluidState.isSource()) {
+                    // This is handled by vanilla defaults
+                    fluidStates.map().remove(pos.immutable());
+                    
+                    return original.call(level, pos, state, fluidState);
+                } else {
+                    // This needs to be stored in our structure
+                    fluidStates.map().put(pos.immutable(), fluidState);
+                }
+                // Since we mutate the data, rather than replacing it, we need to manually trigger a sync
+                chunk.syncData(FLUID_STATES);
+                chunk.setUnsaved(true);
+                // Force a block update
+                level.setBlock(pos, state.setValue(WATERLOGGED, true), Block.UPDATE_ALL);
+            }
             
-            return original.call(level, pos, state, fluidState);
+            return true;
         } else {
             // Remove FluidState#isSource condition to allow flowing water to flow into block. Not vanilla behavior
-            if (!state.getValue(BlockStateProperties.WATERLOGGED) && (fluidState.isSource() || ServerConfig.flowingFluidsCanBeWaterlogged)) {
+            if ((!state.getValue(WATERLOGGED) || ServerConfig.flowingFluidsCanBeWaterlogged) && (fluidState.isSource() || ServerConfig.flowingFluidsCanBeWaterlogged)) {
                 // Syncing to client is handled by the attachment
                 if (!level.isClientSide()) {
                     ChunkAccess chunk = level.getChunk(pos);
@@ -86,7 +106,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                     chunk.syncData(FLUID_STATES);
                     chunk.setUnsaved(true);
                     
-                    level.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_ALL);
+                    level.setBlock(pos, state.setValue(WATERLOGGED, Boolean.TRUE), Block.UPDATE_ALL);
                     level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
                 }
                 
@@ -135,6 +155,9 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // TODO: test with partial fluid implementations (no flowing, bucket, etc.)
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
         } else {
+            states.map().remove(pos);
+            chunk.syncData(FLUID_STATES);
+            chunk.setUnsaved(true);
             
             cir.setReturnValue(ItemStack.EMPTY);
         }
