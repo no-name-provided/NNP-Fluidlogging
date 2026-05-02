@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,9 +39,13 @@ abstract class FFluidlogging_BlockBehavior {
                         // Since they can't be logged, it's always correct
                         chunk.getData(FAttachments.FLUID_STATES).map().put(pos, oldState.getFluidState());
                         chunk.syncData(FAttachments.FLUID_STATES);
-                        chunk.setUnsaved(true);
+                        AuxiliaryLightManager lManager = chunk.getAuxLightManager(pos);
+                        if (lManager != null) {
+                            lManager.setLightAt(pos, oldState.getFluidState().getFluidType().getLightLevel(oldState.getFluidState(), level, pos));
+                        }
                         // This must come last, otherwise the incorrect FluidState will be used for the block updates
                         level.setBlock(pos, newState.setValue(BlockStateProperties.WATERLOGGED, true), Block.UPDATE_ALL);
+                        chunk.setUnsaved(true);
                     }
                 }
             } else {
@@ -50,6 +55,10 @@ abstract class FFluidlogging_BlockBehavior {
                 FluidStates states = chunk.getData(FAttachments.FLUID_STATES);
                 states.map().remove(pos);
                 chunk.syncData(FAttachments.FLUID_STATES);
+                AuxiliaryLightManager lManager = chunk.getAuxLightManager(pos);
+                if (lManager != null) {
+                    lManager.setLightAt(pos, oldState.getFluidState().getFluidType().getLightLevel(oldState.getFluidState(), level, pos));
+                }
                 chunk.setUnsaved(true);
             }
         }

@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
@@ -20,6 +19,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -58,6 +58,14 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
     
     /**
      * Allows SimpleWaterloggedBlock to use our attachment when player's attempt to manually fill them.
+     * <p>
+     *     While we're nice enough to return false if the operation should fail, this is ignored by the vanilla bucket
+     *     class, which always consumes the fluid contents. Shrug.
+     * </p>
+     * <p>
+     *     AuxiliaryLightManager doesn't consistently synchronize (outside a BlockEntity context),
+     *     so we need to update it on both sides.
+     * </p>
      */
     @WrapMethod(method = "placeLiquid(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)Z")
     private boolean nnp_f_fluidlogging_placeLiquid(
@@ -74,7 +82,10 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         ChunkAccess chunk = level.getChunk(iPos);
         Map<BlockPos, FluidState> fluidStates = chunk.getData(FLUID_STATES).map();
         FluidState oldFluidState = fluidStates.getOrDefault(iPos, state.getFluidState());
-        boolean wasLogged = state.getValue(WATERLOGGED);
+//        boolean wasLogged = state.getValue(WATERLOGGED);
+        // Handle lighting
+        AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
+        boolean lManagerExists = lManager != null;
         
         if (
             // Don't let players waste buckets
@@ -82,30 +93,39 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                         // but maybe allow fluids to flow in
                         (ServerConfig.flowingFluidsCanLog && !fluidState.isSource())
         ) {
-            if (!level.isClientSide()) {
-                // Special case fully waterlogged blocks
-                if (fluidState.is(Fluids.WATER) && fluidState.isSource()) {
-                    // Only sync if we actually update our structure
+            // Special case fully waterlogged blocks
+            if (fluidState.is(Fluids.WATER) && fluidState.isSource()) {
+                // Only sync if we actually update our structure
+                if (!level.isClientSide()) {
                     if (fluidStates.remove(iPos) != null) {
                         chunk.syncData(FLUID_STATES);
-                        chunk.setUnsaved(true);
                     }
-                    // Handle the rest
-                } else {
+                }
+                if (lManagerExists) {
+                    lManager.removeLightAt(pos);
+                }
+                chunk.setUnsaved(true);
+                // Handle the rest
+            } else {
+                if (!level.isClientSide()) {
                     fluidStates.put(iPos, fluidState);
                     chunk.syncData(FLUID_STATES);
                     chunk.setUnsaved(true);
                 }
-                // Unlike block entities, block states don't actually send updates unless they change
-                // Even changing them and immediately changing them back doesn't seem to cause an update.
-                // Nothing renders until we trigger a chunk update... with literally any player interaction but no code seems to do it
-                
-                // If these run on the client, they'll trigger before the attachment syncs and render the wrong fluid
-                // until a neighbor updates the BlockState
+                if (lManagerExists) {
+                    lManager.setLightAt(pos, fluidState.getFluidType().getLightLevel(fluidState, level, pos));
+                }
+            }
+            // If these run on the client, they'll trigger before the attachment syncs and render the wrong fluid
+            // until a neighbor updates the BlockState
+            if (!level.isClientSide()) {
                 level.setBlock(iPos, state.setValue(WATERLOGGED, true), Block.UPDATE_ALL);
                 level.scheduleTick(iPos, fluidState.getType(), fluidState.getType().getTickDelay(level));
             }
-            if (wasLogged && level instanceof Level realLevel) {
+            // Unlike block entities, block states don't actually send updates unless they change
+            // Even changing them and immediately changing them back doesn't seem to cause an update.
+            // Nothing renders until we trigger a chunk update... with literally any player interaction but no code seems to do it
+//            if (wasLogged && level instanceof Level realLevel) {
                 // Since Level#markAndNotify, et at. don't seem to work (on either side), we are at an impasse
                 // The following lines <i>don't</i> trigger a rerendering
 //                realLevel.sendBlockUpdated(iPos, state, state, Block.UPDATE_ALL);
@@ -121,7 +141,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
 //                realLevel.getBlockStatesIfLoaded(new AABB(iPos).inflate(2));
 //                state.updateShape(Direction.UP, state, level, iPos, iPos.above());
 //                state.updateShape(Direction.UP, state, level, iPos.above(), iPos);
-            }
+//            }
             
             return true;
         }
@@ -134,10 +154,14 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
      */
     @Inject(method = "pickupBlock(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/item/ItemStack;",
             at = @At("RETURN"), cancellable = true)
-    private void nnp_f_fluidlogging_pickupBlock(Player player, LevelAccessor level, BlockPos pos, BlockState state, CallbackInfoReturnable<ItemStack> cir) {
+    private void nnp_f_fluidlogging_pickupBlock(Player player, LevelAccessor level, BlockPos pos, BlockState
+            state, CallbackInfoReturnable<ItemStack> cir) {
         // Unsetting the waterlogged flag is handled by the vanilla method we're injecting after
         ChunkAccess chunk = level.getChunk(pos);
         FluidStates states = chunk.getData(FLUID_STATES);
+        // Handle lighting
+        AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
+        boolean lManagerExists = lManager != null;
         // For vanilla support, we default to the blockstate based waterlogging check
         FluidState fluidState = states.map().getOrDefault(pos, chunk.getFluidState(pos));
         
@@ -152,22 +176,31 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         } else if (fluidState.is(Fluids.LAVA)) {
             states.map().remove(pos);
             chunk.syncData(FLUID_STATES);
+            if (lManagerExists) {
+                lManager.removeLightAt(pos);
+            }
             chunk.setUnsaved(true);
-            level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
+//            level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
             
             // Lava has a weird, limited type implementation, so we don't trust it
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
             states.map().remove(pos);
             chunk.syncData(FLUID_STATES);
+            if (lManagerExists) {
+                lManager.setLightAt(pos, fluidState.getFluidType().getLightLevel(fluidState, level, pos));
+            }
             chunk.setUnsaved(true);
-            level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
+//            level.scheduleTick(pos.immutable(), fluidState.getType(), fluidState.getType().getTickDelay(level));
             
             // TODO: test with partial fluid implementations (no flowing, bucket, etc.)
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
         } else {
             states.map().remove(pos);
             chunk.syncData(FLUID_STATES);
+            if (lManagerExists) {
+                lManager.removeLightAt(pos);
+            }
             chunk.setUnsaved(true);
             
             cir.setReturnValue(ItemStack.EMPTY);
