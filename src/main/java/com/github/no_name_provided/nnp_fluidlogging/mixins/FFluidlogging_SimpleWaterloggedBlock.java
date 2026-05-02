@@ -97,14 +97,30 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                     chunk.setUnsaved(true);
                 }
                 // Unlike block entities, block states don't actually send updates unless they change
-                // Even changing them and immediately changing them back doesn't seem to cause an update
-                if (wasLogged && level instanceof Level realLevel) {
-                    // Since Level#markAndNotify, et at. don't seem to work (on either side), we are at an impasse
-                }
+                // Even changing them and immediately changing them back doesn't seem to cause an update.
+                // Nothing renders until we trigger a chunk update... with literally any player interaction but no code seems to do it
+                
                 // If these run on the client, they'll trigger before the attachment syncs and render the wrong fluid
                 // until a neighbor updates the BlockState
                 level.setBlock(iPos, state.setValue(WATERLOGGED, true), Block.UPDATE_ALL);
                 level.scheduleTick(iPos, fluidState.getType(), fluidState.getType().getTickDelay(level));
+            }
+            if (wasLogged && level instanceof Level realLevel) {
+                // Since Level#markAndNotify, et at. don't seem to work (on either side), we are at an impasse
+                // The following lines <i>don't</i> trigger a rerendering
+//                realLevel.sendBlockUpdated(iPos, state, state, Block.UPDATE_ALL);
+//                realLevel.scheduleTick(iPos, state.getBlock(), Block.UPDATE_ALL, TickPriority.NORMAL);
+//                realLevel.setBlocksDirty(iPos, state, state.setValue(WATERLOGGED, false));
+//                realLevel.getChunk(iPos).markPosForPostprocessing(iPos);
+//                realLevel.sendBlockUpdated(pos, state, state.setValue(WATERLOGGED, false), Block.UPDATE_ALL);
+//                realLevel.getChunkSource().updateChunkForced(new ChunkPos(iPos), true);
+//                realLevel.getChunk(iPos).setUnsaved(true);
+//                realLevel.getChunk(iPos).syncData(FLUID_STATES);
+//                realLevel.getChunkAt(iPos).postProcessGeneration();
+//                realLevel.getChunkAt(iPos).getLightEmission(pos);
+//                realLevel.getBlockStatesIfLoaded(new AABB(iPos).inflate(2));
+//                state.updateShape(Direction.UP, state, level, iPos, iPos.above());
+//                state.updateShape(Direction.UP, state, level, iPos.above(), iPos);
             }
             
             return true;
