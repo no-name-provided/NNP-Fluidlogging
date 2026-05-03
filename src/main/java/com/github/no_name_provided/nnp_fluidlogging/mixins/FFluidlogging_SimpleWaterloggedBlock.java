@@ -7,6 +7,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -82,7 +84,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         ChunkAccess chunk = level.getChunk(iPos);
         Map<BlockPos, FluidState> fluidStates = chunk.getData(FLUID_STATES).map();
         FluidState oldFluidState = fluidStates.getOrDefault(iPos, state.getFluidState());
-//        boolean wasLogged = state.getValue(WATERLOGGED);
+        boolean wasLogged = state.getValue(WATERLOGGED);
         // Handle lighting
         AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
         boolean lManagerExists = lManager != null;
@@ -126,8 +128,8 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Even changing them and immediately changing them back doesn't seem to cause an update.
             // Nothing renders until we trigger a chunk update... with literally any player interaction but no code seems to do it
 //            if (wasLogged && level instanceof Level realLevel) {
-                // Since Level#markAndNotify, et at. don't seem to work (on either side), we are at an impasse
-                // The following lines <i>don't</i> trigger a rerendering
+//                 Since Level#markAndNotify, et at. don't seem to work (on either side), we are at an impasse
+//                 The following lines <i>don't</i> trigger a rerendering
 //                realLevel.sendBlockUpdated(iPos, state, state, Block.UPDATE_ALL);
 //                realLevel.scheduleTick(iPos, state.getBlock(), Block.UPDATE_ALL, TickPriority.NORMAL);
 //                realLevel.setBlocksDirty(iPos, state, state.setValue(WATERLOGGED, false));
@@ -141,7 +143,24 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
 //                realLevel.getBlockStatesIfLoaded(new AABB(iPos).inflate(2));
 //                state.updateShape(Direction.UP, state, level, iPos, iPos.above());
 //                state.updateShape(Direction.UP, state, level, iPos.above(), iPos);
+//                // New attempts
+//                if (level instanceof ClientLevel clientLevel) {
+//                    // These lines will cause crashes on dedicate servers because they aren't conditionally loaded
+//                    SectionPos sectionPos = SectionPos.of(SectionPos.blockToSection(pos.asLong()));
+//                    clientLevel.setSectionDirtyWithNeighbors(sectionPos.x(), sectionPos.y(), sectionPos.z());
+//                    clientLevel.levelRenderer.setBlockDirty(pos, true);
+//                }
 //            }
+            // Force a chunk update, if there otherwise wouldn't be one
+            if (wasLogged && level instanceof ServerLevel sLevel && chunk instanceof LevelChunk lChunk) {
+                sLevel.getPlayers(player ->
+                        player.shouldRenderAtSqrDistance(player.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()))
+                ).forEach(player -> {
+                            player.connection.chunkSender.markChunkPendingToSend(lChunk);
+                            player.connection.chunkSender.sendNextChunks(player);
+                        }
+                );
+            }
             
             return true;
         }
