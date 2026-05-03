@@ -14,5 +14,8 @@
   "nnp_fluidlogging.configuration.consider_fluid_light.tooltip": "Use fluid light?",
   "nnp_fluidlogging.configuration.flowing_fluids_log": "Flowing Fluids Can log",
   "nnp_fluidlogging.configuration.flowing_fluids_log.tooltip": "WIP",
-  "nnp_fluidlogging.configuration.flowing_fluids_log.button": "Toggle"
+  "nnp_fluidlogging.configuration.flowing_fluids_log.button": "Toggle",
+  "nnp_fluidlogging.configuration.force_chunk_updates": "Force Chunk Updates",
+  "nnp_fluidlogging.configuration.force_chunk_updates.tooltip": "Resolves update/sync issues, but may reduce stability",
+  "nnp_fluidlogging.configuration.force_chunk_updates.button": "Toggle"
 }

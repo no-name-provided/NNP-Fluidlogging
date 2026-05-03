@@ -37,12 +37,16 @@ public class ServerConfig {
     private static final ModConfigSpec.BooleanValue FLOWING_FLUIDS_CAN_LOG =
             BUILDER.comment("Can partial fluid blocks waterlog (WIP)")
                     .define("flowing_fluids_log." + MODID, false);
+    private static final ModConfigSpec.BooleanValue FORCE_CHUNK_UPDATES =
+            BUILDER.comment("Should we force chunk updates (resolves sync issues, but may cause stability problems)")
+                    .define("force_chunk_updates." + MODID, false);
     
     public static final ModConfigSpec SPEC = BUILDER.build();
     
     public static List<? extends String> blacklistedFluids;
     public static boolean considerFluidLightLevel;
     public static boolean flowingFluidsCanLog;
+    public static boolean forceChunkUpdates;
     
     protected static String supplyFluid() {
         
@@ -67,6 +71,7 @@ public class ServerConfig {
             blacklistedFluids = BLACKLISTED_FLUIDS.get();
             considerFluidLightLevel = CONSIDER_FLUID_LIGHT_LEVEL.get();
             flowingFluidsCanLog = FLOWING_FLUIDS_CAN_LOG.get();
+            forceChunkUpdates = FORCE_CHUNK_UPDATES.get();
         }
     }
     
