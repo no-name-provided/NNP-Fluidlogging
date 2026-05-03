@@ -2,6 +2,7 @@ package com.github.no_name_provided.nnp_fluidlogging.common.config;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -25,25 +26,35 @@ public class ServerConfig {
             BUILDER.comment("Which fluids should be blacklisted? This isn't retroactive.",
                             "Empty by default. Water cannot be blacklisted.")
                     .defineListAllowEmpty(
-                            "blacklist.nnp_fluidlogging",
+                            "fluid_blacklist",
                             new ArrayList<>(),
                             ServerConfig::supplyFluid,
                             ServerConfig::validateFluid
                     );
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLISTED_BLOCKS =
+            BUILDER.comment("Which blocks should be blacklisted? This isn't retroactive.",
+                            "Only applies to SimpleWaterLoggableBlock variants (stairs, slabs, etc.).")
+                    .defineListAllowEmpty(
+                            "block_blacklist",
+                            new ArrayList<>(),
+                            () -> BuiltInRegistries.BLOCK.getKey(Blocks.COBBLESTONE_STAIRS).toString(),
+                            ServerConfig::validateBlock
+                    );
     private static final ModConfigSpec.BooleanValue CONSIDER_FLUID_LIGHT_LEVEL =
             BUILDER.comment("Should fluidlogged blocks emit the higher of blocklight and fluid light?",
                             "Significant performance penalty.")
-                    .define("consider_fluid_light." + MODID, true);
+                    .define("consider_fluid_light", true);
     private static final ModConfigSpec.BooleanValue FLOWING_FLUIDS_CAN_LOG =
             BUILDER.comment("Can partial fluid blocks waterlog (WIP)")
-                    .define("flowing_fluids_log." + MODID, false);
+                    .define("flowing_fluids_log", false);
     private static final ModConfigSpec.BooleanValue FORCE_CHUNK_UPDATES =
             BUILDER.comment("Should we force chunk updates (resolves sync issues, but may cause stability problems)")
-                    .define("force_chunk_updates." + MODID, false);
+                    .define("force_chunk_updates", false);
     
     public static final ModConfigSpec SPEC = BUILDER.build();
     
     public static List<? extends String> blacklistedFluids;
+    public static List<? extends String> blacklistedBlocks;
     public static boolean considerFluidLightLevel;
     public static boolean flowingFluidsCanLog;
     public static boolean forceChunkUpdates;
@@ -65,10 +76,22 @@ public class ServerConfig {
         return false;
     }
     
+    protected static boolean validateBlock(Object element) {
+        if (element instanceof String blockString) {
+            // Returns null on failure
+            ResourceLocation loc = ResourceLocation.tryParse(blockString);
+            
+            return loc != null && BuiltInRegistries.BLOCK.containsKey(loc);
+        }
+        
+        return false;
+    }
+    
     @SubscribeEvent
     static void onConfigUpdate(final ModConfigEvent event) {
         if (!(event instanceof ModConfigEvent.Unloading) && event.getConfig().getType() == ModConfig.Type.SERVER) {
             blacklistedFluids = BLACKLISTED_FLUIDS.get();
+            blacklistedBlocks = BLACKLISTED_BLOCKS.get();
             considerFluidLightLevel = CONSIDER_FLUID_LIGHT_LEVEL.get();
             flowingFluidsCanLog = FLOWING_FLUIDS_CAN_LOG.get();
             forceChunkUpdates = FORCE_CHUNK_UPDATES.get();

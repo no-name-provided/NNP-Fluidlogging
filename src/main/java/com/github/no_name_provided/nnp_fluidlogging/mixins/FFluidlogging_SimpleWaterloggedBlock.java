@@ -47,15 +47,16 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         // Call this so any injected side effects can run, but ignore the return value because we don't care
         original.call(player, getter, pos, state, fluid);
         
-        boolean isBlacklisted = false;
+        boolean isFluidBlacklisted = false;
         Optional<ResourceKey<Fluid>> key = BuiltInRegistries.FLUID.getResourceKey(fluid);
         if (key.isPresent()) {
-            isBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().location().toString());
+            isFluidBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().location().toString());
         }
+        boolean isBlockBlacklisted = ServerConfig.blacklistedBlocks.contains(state.getBlockHolder().getRegisteredName());
         
         // Filter out fluids without buckets, to avoid an entire category of potential errors.
         // Default bucket is Items.AIR. Might also need to null check
-        return !isBlacklisted;
+        return !(isFluidBlacklisted || isBlockBlacklisted);
     }
     
     /**

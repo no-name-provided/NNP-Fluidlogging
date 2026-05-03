@@ -2,8 +2,10 @@
 
   "nnp_fluidlogging.configuration.nnp_fluidlogging": "Configure",
   "nnp_fluidlogging.configuration.section.nnp.fluidlogging.server.toml.title": "NNP FlC Server Config",
-  "nnp_fluidlogging.configuration.blacklist": "Blacklisted Fluids",
-  "nnp_fluidlogging.configuration.blacklist.tooltip": "By Resourcelocation",
+  "nnp_fluidlogging.configuration.fluid_blacklist": "Blacklisted Fluids",
+  "nnp_fluidlogging.configuration.fluid_blacklist.tooltip": "By Resourcelocation",
+  "nnp_fluidlogging.configuration.block_blacklist": "Blacklisted Blocks",
+  "nnp_fluidlogging.configuration.block_blacklist.tooltip": "By Resourcelocation",
   "nnp_fluidlogging.configuration.blacklist.button": "Fluids",
   "nnp_fluidlogging.configuration.section.nnp.fluidlogging.server.toml": "Server Config",
   "nnp_fluidlogging.configuration.nnp_fluidlogging.tooltip": "Edit",
@@ -12,10 +14,10 @@
   "nnp_fluidlogging.configuration.consider_fluid_light": "Logged Fluids Emit Light",
   "nnp_fluidlogging.configuration.consider_fluid_light.button": "Toggle",
   "nnp_fluidlogging.configuration.consider_fluid_light.tooltip": "Use fluid light?",
-  "nnp_fluidlogging.configuration.flowing_fluids_log": "Flowing Fluids Can log",
+  "nnp_fluidlogging.configuration.flowing_fluids_log": "Flowing Fluids Can Log",
   "nnp_fluidlogging.configuration.flowing_fluids_log.tooltip": "WIP",
   "nnp_fluidlogging.configuration.flowing_fluids_log.button": "Toggle",
   "nnp_fluidlogging.configuration.force_chunk_updates": "Force Chunk Updates",
-  "nnp_fluidlogging.configuration.force_chunk_updates.tooltip": "Resolves update/sync issues, but may reduce stability",
+  "nnp_fluidlogging.configuration.force_chunk_updates.tooltip": "Resolves update/sync issues, but may reduce stability.",
   "nnp_fluidlogging.configuration.force_chunk_updates.button": "Toggle"
 }
