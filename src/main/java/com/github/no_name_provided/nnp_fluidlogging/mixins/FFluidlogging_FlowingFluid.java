@@ -98,7 +98,8 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
 //            FluidState fluidstate = blockstate.getFluidState();
             FluidState fluidstate = level.getFluidState(blockpos);
             if (fluidstate.getType().isSame(flowingFluid) && flowingFluid.canPassThroughWall(direction, level, pos, state, blockpos, blockstate)) {
-                if (fluidstate.isSource() && net.neoforged.neoforge.event.EventHooks.canCreateFluidSource(level, blockpos, blockstate)) {
+                // Trick Neo event into thinking we're looking at a liquid block, so vanillaResult calculates the correct value
+                if (fluidstate.isSource() && net.neoforged.neoforge.event.EventHooks.canCreateFluidSource(level, blockpos, fluidstate.createLegacyBlock().trySetValue(BlockStateProperties.LEVEL, fluidstate.getAmount()))) {
                     j++;
                 }
                 
@@ -114,6 +115,7 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
             if (blockstate1.isSolid() || flowingFluid.isSourceBlockOfThisType(fluidstate1)) {
                 
                 cir.setReturnValue(flowingFluid.getSource(false));
+                return;
             }
         }
         
@@ -131,8 +133,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
             
             cir.setReturnValue(k <= 0 ? Fluids.EMPTY.defaultFluidState() : flowingFluid.getFlowing(k, false));
         }
-        
-        cir.cancel();
     }
     
     @Inject(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
@@ -155,14 +155,8 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).map().remove(pos);
                     chunk.syncData(FAttachments.FLUID_STATES);
-//                    if (lManagerExists) {
-//                        lManager.removeLightAt(pos);
-//                    }
                     chunk.setUnsaved(true);
                 } else {
-//                    if (lManagerExists) {
-//                        lManager.removeLightAt(pos);
-//                    }
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 }
             } else if (!newFluidState.equals(state)) {
