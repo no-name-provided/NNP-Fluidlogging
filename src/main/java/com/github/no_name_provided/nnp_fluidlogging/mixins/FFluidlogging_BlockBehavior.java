@@ -37,7 +37,7 @@ abstract class FFluidlogging_BlockBehavior {
     private void nnp_f_fluidlogging_onPlace(BlockState newState, Level level, BlockPos pos, BlockState oldState, boolean flag, CallbackInfo ci) {
         if (newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             //noinspection deprecation - #liquid is widely used in vanilla
-            if (oldState.liquid() && newState instanceof SimpleWaterloggedBlock simpleWaterloggedBlock && simpleWaterloggedBlock.canPlaceLiquid(null, level, pos, newState, oldState.getFluidState().getType())) {
+            if (oldState.liquid() && newState.getBlock() instanceof SimpleWaterloggedBlock simpleWaterloggedBlock && simpleWaterloggedBlock.canPlaceLiquid(null, level, pos, newState, oldState.getFluidState().getType())) {
                 // Filter out flowing liquids... unless we're going to try to handle them
                 if (oldState.getFluidState().isSource() || ServerConfig.flowingFluidsCanLog) {
                     ChunkAccess chunk = level.getChunk(pos);
