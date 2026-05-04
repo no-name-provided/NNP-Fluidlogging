@@ -4,6 +4,7 @@ import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStat
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -98,12 +99,16 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         ) {
             // Special case fully waterlogged blocks
             if (fluidState.is(Fluids.WATER) && fluidState.isSource()) {
-                // Only sync if we actually update our structure
+                // Only sync if we actually update our data structure
                 if (fluidStates.remove(iPos) != null && !level.isClientSide()) {
                     chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
-                    lManager.removeLightAt(pos);
+                    lManager.removeLightAt(iPos);
+                }
+                if (level instanceof ClientLevel clientLevel) {
+                    // Strangely, this is the one place where setting the blocks dirty actually had an effect on rendering
+                    clientLevel.setBlocksDirty(pos, state.setValue(WATERLOGGED, true), state.setValue(WATERLOGGED, false));
                 }
                 chunk.setUnsaved(true);
                 // Handle the rest
@@ -114,7 +119,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 }
                 chunk.setUnsaved(true);
                 if (lManagerExists) {
-                    lManager.setLightAt(pos, fluidState.getFluidType().getLightLevel(fluidState, level, pos));
+                    lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, pos));
                 }
             }
             // If these run on the client, they'll trigger before the attachment syncs
@@ -150,13 +155,14 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
     private void nnp_f_fluidlogging_pickupBlock(Player player, LevelAccessor level, BlockPos pos, BlockState
             state, CallbackInfoReturnable<ItemStack> cir) {
         // Unsetting the waterlogged flag is handled by the vanilla method we're injecting after
-        ChunkAccess chunk = level.getChunk(pos);
+        BlockPos iPos = pos.immutable();
+        ChunkAccess chunk = level.getChunk(iPos);
         FluidStates states = chunk.getData(FLUID_STATES);
         // Handle lighting
-        AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
+        AuxiliaryLightManager lManager = level.getAuxLightManager(iPos);
         boolean lManagerExists = lManager != null;
         // For vanilla support, we default to the blockstate based waterlogging check
-        FluidState fluidState = states.map().getOrDefault(pos, chunk.getFluidState(pos));
+        FluidState fluidState = states.map().getOrDefault(iPos, chunk.getFluidState(iPos));
         
         // Vanilla default for waterlogged blocks. For consistency with worldgenned waterlogged blocks, water is _not_
         // stored in our data structure. Instead, it's represented by a waterlogged=true block without a corresponding
@@ -167,30 +173,30 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.cancel();
             // Only matches source blocks (flowing blocks are a different class)
         } else if (fluidState.is(Fluids.LAVA)) {
-            states.map().remove(pos);
+            states.map().remove(iPos);
             chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
-                lManager.removeLightAt(pos);
+                lManager.removeLightAt(iPos);
             }
             chunk.setUnsaved(true);
             
             // Lava has a weird, limited type implementation, so we don't trust it
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
-            states.map().remove(pos);
+            states.map().remove(iPos);
             chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
-                lManager.setLightAt(pos, fluidState.getFluidType().getLightLevel(fluidState, level, pos));
+                lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
             }
             chunk.setUnsaved(true);
             
             // TODO: test with partial fluid implementations (no flowing, bucket, etc.)
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
         } else {
-            states.map().remove(pos);
+            states.map().remove(iPos);
             chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
-                lManager.removeLightAt(pos);
+                lManager.removeLightAt(iPos);
             }
             chunk.setUnsaved(true);
             

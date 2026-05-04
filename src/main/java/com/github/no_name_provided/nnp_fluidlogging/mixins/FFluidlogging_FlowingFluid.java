@@ -83,7 +83,7 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
     
     
     /**
-     * Lazy hack of a mixin. May be unnecessary.
+     * Lazy hack of a mixin.
      */
     @Inject(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
     at = @At("HEAD"), cancellable = true)
@@ -140,8 +140,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
     private void nnp_f_fluidlogging_tick(Level level, BlockPos pos, FluidState state, CallbackInfo ci) {
         FlowingFluid thisFluid = ((FlowingFluid)(Object)this);
         BlockState blockState = level.getBlockState(pos);
-//        AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
-//        boolean lManagerExists = lManager != null;
         if (!state.isSource()) {
             FluidState newFluidState = thisFluid.getNewLiquid(level, pos, level.getBlockState(pos));
             int i = thisFluid.getSpreadDelay(level, pos, state, newFluidState);
@@ -169,14 +167,8 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).map().put(pos, state);
                     chunk.syncData(FAttachments.FLUID_STATES);
-//                    if (lManagerExists) {
-//                        lManager.setLightAt(pos, state.getFluidType().getLightLevel(state, level, pos));
-//                    }
                     chunk.setUnsaved(true);
                 } else {
-//                    if (lManagerExists) {
-//                        lManager.setLightAt(pos, state.getFluidType().getLightLevel(state, level, pos));
-//                    }
                     BlockState blockstate = newFluidState.createLegacyBlock();
                     level.setBlock(pos, blockstate, Block.UPDATE_CLIENTS);
                 }
@@ -184,7 +176,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                 level.updateNeighborsAt(pos, newFluidState.createLegacyBlock().getBlock());
             }
         }
-        
         thisFluid.spread(level, pos, state);
         
         ci.cancel();
