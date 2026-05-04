@@ -2,9 +2,9 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
+import com.github.no_name_provided.nnp_fluidlogging.common.wrappers.ClientClassWrappers;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -106,9 +106,9 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 if (lManagerExists) {
                     lManager.removeLightAt(iPos);
                 }
-                if (level instanceof ClientLevel clientLevel) {
+                if (level.isClientSide()) {
                     // Strangely, this is the one place where setting the blocks dirty actually had an effect on rendering
-                    clientLevel.setBlocksDirty(pos, state.setValue(WATERLOGGED, true), state.setValue(WATERLOGGED, false));
+                    ClientClassWrappers.setDirtyFromSharedCode(level, pos, state.setValue(WATERLOGGED, true), state.setValue(WATERLOGGED, false));
                 }
                 chunk.setUnsaved(true);
                 // Handle the rest
