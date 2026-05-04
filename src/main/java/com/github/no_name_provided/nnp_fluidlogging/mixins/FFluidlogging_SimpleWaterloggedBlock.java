@@ -56,7 +56,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         
         // Filter out fluids without buckets, to avoid an entire category of potential errors.
         // Default bucket is Items.AIR. Might also need to null check
-        return !(isFluidBlacklisted || isBlockBlacklisted);
+        return !(isFluidBlacklisted || isBlockBlacklisted) && fluid.getBucket() != Items.AIR;
     }
     
     /**
