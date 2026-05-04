@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -36,7 +37,7 @@ abstract class FFluidlogging_BlockBehavior {
     private void nnp_f_fluidlogging_onPlace(BlockState newState, Level level, BlockPos pos, BlockState oldState, boolean flag, CallbackInfo ci) {
         if (newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             //noinspection deprecation - #liquid is widely used in vanilla
-            if (oldState.liquid()) {
+            if (oldState.liquid() && newState instanceof SimpleWaterloggedBlock simpleWaterloggedBlock && simpleWaterloggedBlock.canPlaceLiquid(null, level, pos, newState, oldState.getFluidState().getType())) {
                 // Filter out flowing liquids... unless we're going to try to handle them
                 if (oldState.getFluidState().isSource() || ServerConfig.flowingFluidsCanLog) {
                     ChunkAccess chunk = level.getChunk(pos);
