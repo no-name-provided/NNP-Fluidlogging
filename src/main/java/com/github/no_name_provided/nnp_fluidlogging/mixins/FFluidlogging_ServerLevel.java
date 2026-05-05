@@ -30,18 +30,20 @@ abstract class FFluidlogging_ServerLevel extends Level implements WorldGenLevel 
     
     /**
      * Forces random block ticks (server side) to use the correct FluidState.
-     * @param state THe ticking BlockState.
-     * @param chunk The ticking chunk.
+     *
+     * @param state           THe ticking BlockState.
+     * @param chunk           The ticking chunk.
      * @param randomTickSpeed the random tick rate.
-     * @param pos The position of the ticking block.
+     * @param pos             The position of the ticking block.
      * @return The correct fluid state.
      */
     @ModifyVariable(method = "tickChunk(Lnet/minecraft/world/level/chunk/LevelChunk;I)V",
             at = @At("STORE"),
             name = "fluidstate")
     private FluidState nnp_f_fluidlogging_tickChunk_fixFluidState(FluidState state, LevelChunk chunk, int randomTickSpeed, @Local(ordinal = 0) BlockPos pos) {
-        // The block position local capture should probably have an ordinal of 1. For some reason, the second instance of a
-        // BlockPos variable (used for ticking rather than lightning) isn't being detected. Might need to review bytecode or local capture table.
+        // The block position local capture seems like it should have an ordinal of 1.
+        // However, perhaps because the earlier BlockPos is declared in a narrower scope, this is the first
+        // valid variable in the table.
         return this.getFluidState(pos);
     }
 }

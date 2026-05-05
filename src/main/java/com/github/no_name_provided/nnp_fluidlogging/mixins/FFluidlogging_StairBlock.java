@@ -28,6 +28,10 @@ public class FFluidlogging_StairBlock extends Block implements SimpleWaterlogged
     
     /**
      * Force updateShape to trigger a tick with a fluid from our attachment (when present).
+     * <p>
+     * By the time we get here, we've already passed a WATERLOGGED property check, so we know not finding an entry in
+     * our map means the fluid is water (rather than no fluid).
+     * </p>
      *
      * @param level     The level the block is in.
      * @param pos       The position the block is in.
@@ -37,7 +41,7 @@ public class FFluidlogging_StairBlock extends Block implements SimpleWaterlogged
     @Redirect(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/LevelAccessor;scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;I)V"))
     private void nnp_f_fluidlogging_updateShape(LevelAccessor level, BlockPos pos, Fluid fluid, int tickDelay) {
-        Fluid trueFluid = level.getChunk(pos).getData(FLUID_STATES).map().getOrDefault(pos, Fluids.EMPTY.defaultFluidState()).getType();
+        Fluid trueFluid = level.getChunk(pos).getData(FLUID_STATES).map().getOrDefault(pos, Fluids.WATER.defaultFluidState()).getType();
         level.scheduleTick(pos, trueFluid, trueFluid.getTickDelay(level));
     }
 }

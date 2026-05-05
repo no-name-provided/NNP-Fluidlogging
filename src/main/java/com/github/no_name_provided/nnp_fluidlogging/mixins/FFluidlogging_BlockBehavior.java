@@ -5,8 +5,10 @@ import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStat
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -19,12 +21,27 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Important mixins - clear fluid from data structure when logged blocks are broken.
  */
 @Mixin(BlockBehaviour.class)
 abstract class FFluidlogging_BlockBehavior {
+    
+    /**
+     * Since many (most?) SimpleWaterloggedBlocks call this in their override, it makes sense to add the fluid tick
+     * here. This is less efficient than dedicated overrides for each class. Some classes (eg, coral fans) will still
+     * need dedicated overrides since they don't call this method.
+     */
+    @Inject(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
+            at = @At("TAIL"))
+    private void nnp_f_fluidlogging_updateShape(BlockState newState, Direction direction, BlockState oldState, LevelAccessor level, BlockPos pos, BlockPos triggerPos, CallbackInfoReturnable<BlockState> cir) {
+        if (newState.getBlock() instanceof SimpleWaterloggedBlock && newState.getValue(BlockStateProperties.WATERLOGGED)) {
+            level.scheduleTick(pos, level.getFluidState(pos).getType(), Block.UPDATE_ALL);
+        }
+    }
+    
     /**
      * Add in-world fluid to logged state when block is placed. This replicates vanilla behavior that's ordinarily
      * handled with block-specific overrides.
