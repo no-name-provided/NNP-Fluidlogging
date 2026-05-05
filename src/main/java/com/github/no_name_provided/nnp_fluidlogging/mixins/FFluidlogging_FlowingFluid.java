@@ -1,15 +1,11 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
-import com.google.common.collect.Maps;
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.shorts.Short2BooleanMap;
-import it.unimi.dsi.fastutil.shorts.Short2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.FluidStateSyncPayload;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,82 +18,50 @@ import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Map;
-
-import static net.minecraft.world.level.material.FlowingFluid.getCacheKey;
+import static net.minecraft.world.level.material.FlowingFluid.canPassThroughWall;
 
 @Mixin(FlowingFluid.class)
 abstract class FFluidlogging_FlowingFluid extends Fluid {
     
     /**
-     * Lazy implementation. May not be necessary.
+     * Forces spreading fluids to use our data structure.
+     *
+     * @param fluidState The source FluidState.
+     * @param level      The ServerLevel.
+     * @param pos        The position being queried (target, not source).
+     * @return The correct source FluidState.
      */
-    @Inject(method = "getSpread(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Ljava/util/Map;",
-    at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_getSpread(Level level, BlockPos pos, BlockState state, CallbackInfoReturnable<Map<Direction, FluidState>> cir) {
-        FlowingFluid flowingFluid = (FlowingFluid)(Object)this;
-        int i = 1000;
-        Map<Direction, FluidState> map = Maps.newEnumMap(Direction.class);
-        Short2ObjectMap<Pair<BlockState, FluidState>> short2objectmap = new Short2ObjectOpenHashMap<>();
-        Short2BooleanMap short2booleanmap = new Short2BooleanOpenHashMap();
+    @ModifyVariable(method = "getSpread(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Ljava/util/Map;",
+            at = @At("STORE"),
+            name = "fluidstate"
+    )
+    private FluidState nnp_f_fluidlogging_getSpread(FluidState fluidState, ServerLevel level, @Local(ordinal = 1) BlockPos pos) {
         
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos blockpos = pos.relative(direction);
-            short short1 = getCacheKey(pos, blockpos);
-            Pair<BlockState, FluidState> pair = short2objectmap.computeIfAbsent(short1, p_284929_ -> {
-                BlockState blockstate1 = level.getBlockState(blockpos);
-                return Pair.of(blockstate1, level.getFluidState(blockpos));
-            });
-            BlockState blockstate = pair.getFirst();
-            FluidState fluidstate = pair.getSecond();
-            FluidState fluidstate1 = flowingFluid.getNewLiquid(level, blockpos, blockstate);
-            if (flowingFluid.canPassThrough(level, fluidstate1.getType(), pos, state, direction, blockpos, blockstate, fluidstate)) {
-                BlockPos blockpos1 = blockpos.below();
-                boolean flag = short2booleanmap.computeIfAbsent(short1, p_255612_ -> {
-                    BlockState blockstate1 = level.getBlockState(blockpos1);
-                    return flowingFluid.isWaterHole(level, flowingFluid.getFlowing(), blockpos, blockstate, blockpos1, blockstate1);
-                });
-                int j;
-                if (flag) {
-                    j = 0;
-                } else {
-                    j = flowingFluid.getSlopeDistance(level, blockpos, 1, direction.getOpposite(), blockstate, pos, short2objectmap, short2booleanmap);
-                }
-                
-                if (j < i) {
-                    map.clear();
-                }
-                
-                if (j <= i) {
-                    map.put(direction, fluidstate1);
-                    i = j;
-                }
-            }
-        }
-        
-        cir.setReturnValue(map);
+        return level.getFluidState(pos);
     }
     
     
     /**
-     * Lazy hack of a mixin.
+     * Forces flowing fluids to place the correct fluid in the correct as they spread.
      */
-    @Inject(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
-    at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_getNewLiquid(Level level, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> cir) {
-        FlowingFluid flowingFluid = ((FlowingFluid)(Object)this);
+    @Inject(method = "getNewLiquid(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
+            at = @At("HEAD"), cancellable = true)
+    private void nnp_f_fluidlogging_getNewLiquid(ServerLevel level, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> cir) {
+        FlowingFluid flowingFluid = ((FlowingFluid) (Object) this);
         int i = 0;
         int j = 0;
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos blockpos = pos.relative(direction);
+            BlockPos blockpos = blockpos$mutableblockpos.setWithOffset(pos, direction);
             BlockState blockstate = level.getBlockState(blockpos);
 //            FluidState fluidstate = blockstate.getFluidState();
             FluidState fluidstate = level.getFluidState(blockpos);
-            if (fluidstate.getType().isSame(flowingFluid) && flowingFluid.canPassThroughWall(direction, level, pos, state, blockpos, blockstate)) {
+            if (fluidstate.getType().isSame(flowingFluid) && canPassThroughWall(direction, level, pos, state, blockpos, blockstate)) {
                 // Trick Neo event into thinking we're looking at a liquid block, so vanillaResult calculates the correct value
                 if (fluidstate.isSource() && net.neoforged.neoforge.event.EventHooks.canCreateFluidSource(level, blockpos, fluidstate.createLegacyBlock().trySetValue(BlockStateProperties.LEVEL, fluidstate.getAmount()))) {
                     j++;
@@ -108,7 +72,7 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         }
         
         if (j >= 2) {
-            BlockState blockstate1 = level.getBlockState(pos.below());
+            BlockState blockstate1 = level.getBlockState(blockpos$mutableblockpos.setWithOffset(pos, Direction.DOWN));
             //FluidState fluidstate1 = blockstate1.getFluidState();
             FluidState fluidstate1 = level.getFluidState(pos.below());
             //noinspection deprecation - copied from vanilla
@@ -119,13 +83,13 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
             }
         }
         
-        BlockPos blockpos1 = pos.above();
+        BlockPos blockpos1 = blockpos$mutableblockpos.setWithOffset(pos, Direction.UP);
         BlockState blockstate2 = level.getBlockState(blockpos1);
 //        FluidState fluidstate2 = blockstate2.getFluidState();
         FluidState fluidstate2 = level.getFluidState(blockpos1);
         if (!fluidstate2.isEmpty()
                 && fluidstate2.getType().isSame(flowingFluid)
-                && flowingFluid.canPassThroughWall(Direction.UP, level, pos, state, blockpos1, blockstate2)) {
+                && canPassThroughWall(Direction.UP, level, pos, state, blockpos1, blockstate2)) {
             
             cir.setReturnValue(flowingFluid.getFlowing(8, true));
         } else {
@@ -135,48 +99,60 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         }
     }
     
-    @Inject(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
-    at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_tick(Level level, BlockPos pos, FluidState state, CallbackInfo ci) {
-        FlowingFluid thisFluid = ((FlowingFluid)(Object)this);
-        BlockState blockState = level.getBlockState(pos);
-        if (!state.isSource()) {
+    @Inject(method = "tick(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)V",
+            at = @At("HEAD"), cancellable = true)
+    private void nnp_f_fluidlogging_tick(ServerLevel level, BlockPos pos, BlockState bState, FluidState fState, CallbackInfo ci) {
+        FlowingFluid thisFluid = ((FlowingFluid) (Object) this);
+        if (!fState.isSource()) {
             FluidState newFluidState = thisFluid.getNewLiquid(level, pos, level.getBlockState(pos));
-            int i = thisFluid.getSpreadDelay(level, pos, state, newFluidState);
+            int i = thisFluid.getSpreadDelay(level, pos, fState, newFluidState);
             if (newFluidState.isEmpty()) {
                 // Make sure we use (and update) our data structure
-                state = newFluidState;
-                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    if (blockState.getValue(BlockStateProperties.WATERLOGGED)) {
-                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
+                fState = newFluidState;
+                bState = Blocks.AIR.defaultBlockState();
+                if (bState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                    if (bState.getValue(BlockStateProperties.WATERLOGGED)) {
+                        level.setBlock(pos, bState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).map().remove(pos);
-                    chunk.syncData(FAttachments.FLUID_STATES);
-                    chunk.setUnsaved(true);
+                    if (level instanceof ServerLevel sLevel) {
+                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+                                .forEach(player -> {
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
+                                });
+                    }
+//                    chunk.syncData(FAttachments.FLUID_STATES);
+                    chunk.markUnsaved();
                 } else {
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+                    level.setBlock(pos, bState, Block.UPDATE_ALL);
                 }
-            } else if (!newFluidState.equals(state)) {
+            } else if (!newFluidState.equals(fState)) {
                 // Make sure we use (and update) our data structure
-                state = newFluidState;
-                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    if (!blockState.getValue(BlockStateProperties.WATERLOGGED)) {
-                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
+                fState = newFluidState;
+                if (bState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                    if (!bState.getValue(BlockStateProperties.WATERLOGGED)) {
+                        level.setBlock(pos, bState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, state);
-                    chunk.syncData(FAttachments.FLUID_STATES);
-                    chunk.setUnsaved(true);
+                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, fState);
+                    if (level instanceof ServerLevel sLevel) {
+                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+                                .forEach(player -> {
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
+                                });
+                    }
+//                    chunk.syncData(FAttachments.FLUID_STATES);
+                    chunk.markUnsaved();
                 } else {
-                    BlockState blockstate = newFluidState.createLegacyBlock();
-                    level.setBlock(pos, blockstate, Block.UPDATE_CLIENTS);
+                    bState = newFluidState.createLegacyBlock();
+                    level.setBlock(pos, bState, Block.UPDATE_CLIENTS);
                 }
                 level.scheduleTick(pos, newFluidState.getType(), i);
                 level.updateNeighborsAt(pos, newFluidState.createLegacyBlock().getBlock());
             }
         }
-        thisFluid.spread(level, pos, state);
+        thisFluid.spread(level, pos, bState, fState);
         
         ci.cancel();
     }

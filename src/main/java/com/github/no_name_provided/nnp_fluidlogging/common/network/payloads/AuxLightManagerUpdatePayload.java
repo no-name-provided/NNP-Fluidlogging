@@ -15,7 +15,7 @@ public record AuxLightManagerUpdatePayload(int lightLevel, long blockPos) implem
     );
     
     public static final StreamCodec<ByteBuf, AuxLightManagerUpdatePayload> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.INT,
+            ByteBufCodecs.VAR_INT,
             AuxLightManagerUpdatePayload::lightLevel,
             ByteBufCodecs.VAR_LONG,
             AuxLightManagerUpdatePayload::blockPos,

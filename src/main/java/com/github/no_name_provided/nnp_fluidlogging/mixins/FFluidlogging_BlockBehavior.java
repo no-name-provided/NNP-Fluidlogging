@@ -4,11 +4,14 @@ import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachme
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
+import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.FluidStateSyncPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -34,11 +37,11 @@ abstract class FFluidlogging_BlockBehavior {
      * here. This is less efficient than dedicated overrides for each class. Some classes (eg, coral fans) will still
      * need dedicated overrides since they don't call this method.
      */
-    @Inject(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
+    @Inject(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/world/level/ScheduledTickAccess;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/util/RandomSource;)Lnet/minecraft/world/level/block/state/BlockState;",
             at = @At("TAIL"))
-    private void nnp_f_fluidlogging_updateShape(BlockState newState, Direction direction, BlockState oldState, LevelAccessor level, BlockPos pos, BlockPos triggerPos, CallbackInfoReturnable<BlockState> cir) {
+    private void nnp_f_fluidlogging_updateShape(BlockState newState, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random, CallbackInfoReturnable<BlockState> cir) {
         if (newState.getBlock() instanceof SimpleWaterloggedBlock && newState.getValue(BlockStateProperties.WATERLOGGED)) {
-            level.scheduleTick(pos, level.getFluidState(pos).getType(), Block.UPDATE_ALL);
+            scheduledTickAccess.scheduleTick(pos, level.getFluidState(pos).getType(), Block.UPDATE_ALL);
         }
     }
     
@@ -62,7 +65,13 @@ abstract class FFluidlogging_BlockBehavior {
                     // Since they can't be logged, it's always correct
                     chunk.getData(FAttachments.FLUID_STATES).map().put(pos, oldState.getFluidState());
                     if (!level.isClientSide()) {
-                        chunk.syncData(FAttachments.FLUID_STATES);
+                        if (level instanceof ServerLevel sLevel) {
+                            sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+                                    .forEach(player -> {
+                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
+                                    });
+                        }
+//                        chunk.syncData(FAttachments.FLUID_STATES);
                     }
                     AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
                     if (lManager != null) {
@@ -72,7 +81,7 @@ abstract class FFluidlogging_BlockBehavior {
                         // This must come last, otherwise the incorrect FluidState will be used for the block updates
                         level.setBlock(pos, newState.setValue(BlockStateProperties.WATERLOGGED, true), Block.UPDATE_ALL);
                     }
-                    chunk.setUnsaved(true);
+                    chunk.markUnsaved();
                     if (ServerConfig.forceChunkUpdates) {
                         if (level instanceof ServerLevel sLevel && chunk instanceof LevelChunk lChunk) {
                             sLevel.getPlayers(player ->
@@ -100,13 +109,19 @@ abstract class FFluidlogging_BlockBehavior {
             if (!level.isClientSide()) {
                 FluidStates states = chunk.getData(FAttachments.FLUID_STATES);
                 states.map().remove(pos);
-                chunk.syncData(FAttachments.FLUID_STATES);
+                if (level instanceof ServerLevel sLevel) {
+                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+                            .forEach(player -> {
+                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
+                            });
+                }
+//                chunk.syncData(FAttachments.FLUID_STATES);
             }
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
             if (lManager != null) {
                 lManager.removeLightAt(pos);
             }
-            chunk.setUnsaved(true);
+            chunk.markUnsaved();
             // Fixes desync issue
             if (ServerConfig.forceChunkUpdates) {
                 // Crude approach
@@ -146,8 +161,14 @@ abstract class FFluidlogging_BlockBehavior {
             ChunkAccess chunk = level.getChunk(pos);
             // This is fine, since we shouldn't have null values in this map
             if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).map().remove(pos) != null) {
-                chunk.syncData(FAttachments.FLUID_STATES);
-                chunk.setUnsaved(true);
+//                chunk.syncData(FAttachments.FLUID_STATES);
+                if (level instanceof ServerLevel sLevel) {
+                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+                            .forEach(player -> {
+                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
+                            });
+                }
+                chunk.markUnsaved();
             }
             
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
