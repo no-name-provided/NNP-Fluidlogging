@@ -31,7 +31,7 @@ abstract class FFluidlogging_ServerLevel extends Level implements WorldGenLevel 
     /**
      * Forces random block ticks (server side) to use the correct FluidState.
      *
-     * @param state           THe ticking BlockState.
+     * @param state           The ticking BlockState.
      * @param chunk           The ticking chunk.
      * @param randomTickSpeed the random tick rate.
      * @param pos             The position of the ticking block.
