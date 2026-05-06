@@ -11,7 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
@@ -30,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 
@@ -45,10 +46,10 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
      * Allows us to filter which fluids SimpleWaterloggedBlock is compatible with. Needed to jailbreak vanilla
      * limitations, and makes a good hook for configurable white/blacklists.
      */
-    @WrapMethod(method = "canPlaceLiquid(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/Fluid;)Z")
-    private boolean nnp_f_fluidlogging_canPlaceLiquid(Player player, BlockGetter getter, BlockPos pos, BlockState state, Fluid fluid, Operation<Boolean> original) {
+    @WrapMethod(method = "canPlaceLiquid(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/Fluid;)Z")
+    private boolean nnp_f_fluidlogging_canPlaceLiquid(@Nullable LivingEntity livingEntity, BlockGetter getter, BlockPos pos, BlockState state, Fluid fluid, Operation<Boolean> original) {
         // Call this so any injected side effects can run, but ignore the return value because we don't care
-        original.call(player, getter, pos, state, fluid);
+        original.call(livingEntity, getter, pos, state, fluid);
         
         boolean isFluidBlacklisted = false;
         Optional<ResourceKey<Fluid>> key = BuiltInRegistries.FLUID.getResourceKey(fluid);
@@ -106,7 +107,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                     if (level instanceof ServerLevel sLevel) {
                         sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
                                 .forEach(player ->
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
                                 );
                     }
 //                    chunk.syncData(FLUID_STATES);
@@ -126,7 +127,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                     if (level instanceof ServerLevel sLevel) {
                         sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
                                 .forEach(player ->
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
                                 );
                     }
 //                    chunk.syncData(FLUID_STATES);
@@ -168,9 +169,9 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
      * This runs on both sides, so the sync issues don't affect it.
      * </p>
      */
-    @Inject(method = "pickupBlock(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/item/ItemStack;",
+    @Inject(method = "pickupBlock(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/item/ItemStack;",
             at = @At("RETURN"), cancellable = true)
-    private void nnp_f_fluidlogging_pickupBlock(Player player, LevelAccessor level, BlockPos pos, BlockState
+    private void nnp_f_fluidlogging_pickupBlock(@Nullable LivingEntity livingEntity, LevelAccessor level, BlockPos pos, BlockState
             state, CallbackInfoReturnable<ItemStack> cir) {
         // Unsetting the waterlogged flag is handled by the vanilla method we're injecting after
         BlockPos iPos = pos.immutable();

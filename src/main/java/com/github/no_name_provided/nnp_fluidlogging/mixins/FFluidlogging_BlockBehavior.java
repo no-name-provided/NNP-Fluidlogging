@@ -154,9 +154,9 @@ abstract class FFluidlogging_BlockBehavior {
      * This isn't called on the client side.
      * </p>
      */
-    @Inject(method = "onRemove(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V",
+    @Inject(method = "affectNeighborsAfterRemoval(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Z)V",
             at = @At("TAIL"))
-    private void nnp_f_fluidlogging_onRemove(BlockState newState, Level level, BlockPos pos, BlockState oldState, boolean flag, CallbackInfo ci) {
+    private void nnp_f_fluidlogging_affectNeighborsAfterRemoval(BlockState newState, ServerLevel level, BlockPos pos, boolean movedByPiston, CallbackInfo ci) {
         if (!newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             ChunkAccess chunk = level.getChunk(pos);
             // This is fine, since we shouldn't have null values in this map
