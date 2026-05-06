@@ -25,11 +25,11 @@ public class FAttachments {
     public static DeferredHolder<AttachmentType<?>, AttachmentType<FluidStates>> FLUID_STATES = FATTACHMENTS.register(
             "fluid_states", () -> AttachmentType.builder(() -> new FluidStates(new HashMap<>()))
 //                    .sync(FluidStates.STREAM_CODEC)
-                    .serialize(FluidStates.CODEC).build()
+                    .serialize(FluidStates.CODEC.fieldOf("fluid_states")).build()
     );
     
     /**
-     * Convenience method that registers our deferred object(s) with the the mod event bus.
+     * Convenience method that registers our deferred object(s) with the mod event bus.
      */
     public static void register(IEventBus modBus) {
         FATTACHMENTS.register(modBus);

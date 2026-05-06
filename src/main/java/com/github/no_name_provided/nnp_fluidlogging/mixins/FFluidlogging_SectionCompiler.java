@@ -3,7 +3,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.VertexSorting;
 import net.minecraft.client.renderer.SectionBufferBuilderPack;
-import net.minecraft.client.renderer.chunk.RenderChunkRegion;
+import net.minecraft.client.renderer.chunk.RenderSectionRegion;
 import net.minecraft.client.renderer.chunk.SectionCompiler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -32,7 +32,7 @@ abstract class FFluidlogging_SectionCompiler {
      * @return The fluidstate at that block space.
      */
     @Unique
-    private static FluidState NNPFluidlogging$getFluidState(BlockState state, BlockPos pos, RenderChunkRegion region) {
+    private static FluidState NNPFluidlogging$getFluidState(BlockState state, BlockPos pos, RenderSectionRegion region) {
         if (!state.isAir() && state.hasProperty(BlockStateProperties.WATERLOGGED)) {
             
             // We mixin to this so it works as expected
@@ -48,11 +48,11 @@ abstract class FFluidlogging_SectionCompiler {
      *
      * @return The fluid contained in the block, as reported by our modded data structure.
      */
-    @ModifyVariable(method = "compile(Lnet/minecraft/core/SectionPos;Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;Lcom/mojang/blaze3d/vertex/VertexSorting;Lnet/minecraft/client/renderer/SectionBufferBuilderPack;Ljava/util/List;)Lnet/minecraft/client/renderer/chunk/SectionCompiler$Results;",
+    @ModifyVariable(method = "compile(Lnet/minecraft/core/SectionPos;Lnet/minecraft/client/renderer/chunk/RenderSectionRegion;Lcom/mojang/blaze3d/vertex/VertexSorting;Lnet/minecraft/client/renderer/SectionBufferBuilderPack;Ljava/util/List;)Lnet/minecraft/client/renderer/chunk/SectionCompiler$Results;",
             at = @At("STORE"),
             name = "fluidstate"
     )
-    private FluidState nnp_f_fluidlogging_compile(FluidState vanillaValue, SectionPos pos, RenderChunkRegion region, VertexSorting vertexSorting, SectionBufferBuilderPack pack, List<AddSectionGeometryEvent.AdditionalSectionRenderer> additionalRenderers, @Local(ordinal = 2) BlockPos bPos) {
+    private FluidState nnp_f_fluidlogging_compile(FluidState vanillaValue, SectionPos pos, RenderSectionRegion region, VertexSorting vertexSorting, SectionBufferBuilderPack pack, List<AddSectionGeometryEvent.AdditionalSectionRenderer> additionalRenderers, @Local(ordinal = 2) BlockPos bPos) {
         BlockState state = region.getBlockState(bPos);
         if (!state.isAir() && state.hasProperty(BlockStateProperties.WATERLOGGED)) {
             

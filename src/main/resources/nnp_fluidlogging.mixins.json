@@ -15,7 +15,7 @@
   ],
   "client": [
     "FFluidlogging_LiquidBlockRenderer",
-    "FFluidlogging_RenderChunkRegion",
+    "FFluidlogging_RenderSectionRegion",
     "FFluidlogging_SectionCompiler"
   ],
   "injectors": {
