@@ -29,7 +29,7 @@ public class NNP_Fluidlogging {
         // But the screen is only available on clients.
         // Neo is stupid about this, so we need to manually wrap the call in a conditionally loaded class.
         // Alternatively, consider using separate entry points
-        if (FMLEnvironment.dist.isClient()) {
+        if (FMLEnvironment.getDist().isClient()) {
             ServerConfig.registerExtensionPoint(modContainer);
         }
     }
