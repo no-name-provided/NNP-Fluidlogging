@@ -56,7 +56,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         if (key.isPresent()) {
             isFluidBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().identifier().toString());
         }
-        boolean isBlockBlacklisted = ServerConfig.blacklistedBlocks.contains(state.getBlockHolder().getRegisteredName());
+        boolean isBlockBlacklisted = ServerConfig.blacklistedBlocks.contains(state.typeHolder().getRegisteredName());
         
         // Filter out fluids without buckets, to avoid an entire category of potential errors.
         // Default bucket is Items.AIR. Might also need to null check

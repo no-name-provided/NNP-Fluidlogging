@@ -50,13 +50,13 @@ abstract class FFluidlogging_SectionCompiler {
      */
     @ModifyVariable(method = "compile(Lnet/minecraft/core/SectionPos;Lnet/minecraft/client/renderer/chunk/RenderSectionRegion;Lcom/mojang/blaze3d/vertex/VertexSorting;Lnet/minecraft/client/renderer/SectionBufferBuilderPack;Ljava/util/List;)Lnet/minecraft/client/renderer/chunk/SectionCompiler$Results;",
             at = @At("STORE"),
-            name = "fluidstate"
+            name = "fluidState"
     )
-    private FluidState nnp_f_fluidlogging_compile(FluidState vanillaValue, SectionPos pos, RenderSectionRegion region, VertexSorting vertexSorting, SectionBufferBuilderPack pack, List<AddSectionGeometryEvent.AdditionalSectionRenderer> additionalRenderers, @Local(ordinal = 2) BlockPos bPos) {
-        BlockState state = region.getBlockState(bPos);
+    private FluidState nnp_f_fluidlogging_compile(FluidState vanillaValue, SectionPos sectionPos, RenderSectionRegion region, VertexSorting vertexSorting, SectionBufferBuilderPack pack, List<AddSectionGeometryEvent.AdditionalSectionRenderer> additionalRenderers, @Local(name = "pos") BlockPos pos) {
+        BlockState state = region.getBlockState(pos);
         if (!state.isAir() && state.hasProperty(BlockStateProperties.WATERLOGGED)) {
             
-            return NNPFluidlogging$getFluidState(state, bPos, region);
+            return NNPFluidlogging$getFluidState(state, pos, region);
         } else {
             
             // Required for vanilla LiquidBlock to render correctly

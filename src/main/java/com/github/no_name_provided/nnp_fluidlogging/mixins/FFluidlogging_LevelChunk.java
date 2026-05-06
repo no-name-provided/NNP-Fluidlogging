@@ -26,7 +26,7 @@ import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FA
 @Mixin(LevelChunk.class)
 abstract class FFluidlogging_LevelChunk extends ChunkAccess {
     @Final @Shadow
-    Level level;
+    private Level level;
     
     public FFluidlogging_LevelChunk(ChunkPos chunkPos, UpgradeData upgradeData, LevelHeightAccessor levelHeightAccessor, PalettedContainerFactory palettedContainerFactory, long inhabitedTime, @Nullable LevelChunkSection[] sections, @Nullable BlendingData blendingData) {
         //noinspection NullableProblems - this titally expects nullable parameters; also, this isn't actually used

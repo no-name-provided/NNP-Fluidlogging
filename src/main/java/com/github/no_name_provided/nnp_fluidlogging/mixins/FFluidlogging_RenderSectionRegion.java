@@ -1,9 +1,9 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.chunk.RenderSectionRegion;
 import net.minecraft.client.renderer.chunk.SectionCopy;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.FluidState;
@@ -28,12 +28,12 @@ abstract class FFluidlogging_RenderSectionRegion implements BlockAndTintGetter {
     }
     
     @Shadow @Final
-    abstract public SectionCopy getSection(int x, int y, int z);
+    abstract public SectionCopy getSection(int sectionX, int sectionY, int sectionZ);
     
     @Unique
     LevelChunk NNPFluidlogging$getContainingChunk(ChunkPos pos) {
         
-        return getSection(pos.x, this.minSectionY, pos.z).wrapped;
+        return getSection(pos.x(), this.minSectionY, pos.z()).wrapped;
     }
     
     
@@ -50,7 +50,7 @@ abstract class FFluidlogging_RenderSectionRegion implements BlockAndTintGetter {
     @Inject(method = "getFluidState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;",
             at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getFluidState(BlockPos pos, CallbackInfoReturnable<FluidState> cir) {
-        LevelChunk chunk = this.NNPFluidlogging$getContainingChunk(new ChunkPos(pos));
+        LevelChunk chunk = this.NNPFluidlogging$getContainingChunk(ChunkPos.containing(pos));
         cir.setReturnValue(chunk.getData(FLUID_STATES).map().getOrDefault(pos, chunk.getBlockState(pos).getFluidState()));
     }
 }

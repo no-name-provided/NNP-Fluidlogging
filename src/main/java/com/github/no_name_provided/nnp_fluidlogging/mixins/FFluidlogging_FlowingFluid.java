@@ -33,16 +33,16 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
      *
      * @param fluidState The source FluidState.
      * @param level      The ServerLevel.
-     * @param pos        The position being queried (target, not source).
+     * @param testPos        The position being queried (target, not source).
      * @return The correct source FluidState.
      */
     @ModifyVariable(method = "getSpread(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Ljava/util/Map;",
             at = @At("STORE"),
-            name = "fluidstate"
+            name = "testFluidState"
     )
-    private FluidState nnp_f_fluidlogging_getSpread(FluidState fluidState, ServerLevel level, @Local(ordinal = 1) BlockPos pos) {
+    private FluidState nnp_f_fluidlogging_getSpread(FluidState fluidState, ServerLevel level, @Local(name = "testPos") BlockPos testPos) {
         
-        return level.getFluidState(pos);
+        return level.getFluidState(testPos);
     }
     
     

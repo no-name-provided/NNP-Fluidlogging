@@ -27,11 +27,9 @@ abstract class FFluidlogging_ServerLevel extends Level implements WorldGenLevel 
     
     @ModifyVariable(method = "tickFluid(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;)V",
             at = @At("STORE"),
-            name = "fluidstate")
-    private FluidState nnp_f_fluidlogging_tickFluid_fixFluidState(FluidState state, @Local(ordinal = 0, argsOnly = true) BlockPos pos) {
-        // The block position local capture seems like it should have an ordinal of 1.
-        // However, perhaps because the earlier BlockPos is declared in a narrower scope, this is the first
-        // valid variable in the table.
+            name = "fluidState")
+    private FluidState nnp_f_fluidlogging_tickFluid_fixFluidState(FluidState state, @Local(name = "pos") BlockPos pos) {
+
         return this.getFluidState(pos);
     }
     
@@ -46,11 +44,9 @@ abstract class FFluidlogging_ServerLevel extends Level implements WorldGenLevel 
      */
     @ModifyVariable(method = "tickChunk(Lnet/minecraft/world/level/chunk/LevelChunk;I)V",
             at = @At("STORE"),
-            name = "fluidstate")
-    private FluidState nnp_f_fluidlogging_tickChunk_fixFluidState(FluidState state, LevelChunk chunk, int randomTickSpeed, @Local(ordinal = 0) BlockPos pos) {
-        // The block position local capture seems like it should have an ordinal of 1.
-        // However, perhaps because the earlier BlockPos is declared in a narrower scope, this is the first
-        // valid variable in the table.
+            name = "fluidState")
+    private FluidState nnp_f_fluidlogging_tickChunk_fixFluidState(FluidState state, LevelChunk chunk, int randomTickSpeed, @Local(name = "pos") BlockPos pos) {
+
         return this.getFluidState(pos);
     }
 }

@@ -22,7 +22,7 @@ abstract class FFluidlogging_StairBlock extends Block {
      */
     @Redirect(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/world/level/ScheduledTickAccess;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/util/RandomSource;)Lnet/minecraft/world/level/block/state/BlockState;",
     at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/ScheduledTickAccess;scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;I)V"))
-    private void nnp_f_fluidlogging_updateShape_fixScheduleTick(ScheduledTickAccess access, BlockPos pos, Fluid fluid, int delay, @Local(ordinal = 0, argsOnly = true) LevelReader level) {
+    private void nnp_f_fluidlogging_updateShape_fixScheduleTick(ScheduledTickAccess access, BlockPos pos, Fluid fluid, int delay, @Local(name = "level") LevelReader level) {
         Fluid trueFluid = level.getFluidState(pos).getType();
         access.scheduleTick(pos, trueFluid, trueFluid.getTickDelay(level));
     }

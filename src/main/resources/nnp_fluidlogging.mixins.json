@@ -1,10 +1,11 @@
 {
-  "required": true,
+  "required": false,
   "minVersion": "0.8",
   "package": "com.github.no_name_provided.nnp_fluidlogging.mixins",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "mixins": [
     "FFluidlogging_BlockBehavior",
+    "FFluidlogging_BucketItem",
     "FFluidlogging_FlowingFluid",
     "FFluidlogging_IBlockExtension",
     "FFluidlogging_LevelChunk",
