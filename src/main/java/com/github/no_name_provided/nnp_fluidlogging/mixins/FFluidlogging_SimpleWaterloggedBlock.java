@@ -54,7 +54,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         boolean isFluidBlacklisted = false;
         Optional<ResourceKey<Fluid>> key = BuiltInRegistries.FLUID.getResourceKey(fluid);
         if (key.isPresent()) {
-            isFluidBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().location().toString());
+            isFluidBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().identifier().toString());
         }
         boolean isBlockBlacklisted = ServerConfig.blacklistedBlocks.contains(state.getBlockHolder().getRegisteredName());
         

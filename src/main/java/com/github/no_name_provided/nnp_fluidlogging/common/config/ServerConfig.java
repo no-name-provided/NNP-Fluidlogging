@@ -1,7 +1,7 @@
 package com.github.no_name_provided.nnp_fluidlogging.common.config;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -62,13 +62,13 @@ public class ServerConfig {
     protected static String supplyFluid() {
         
         //noinspection OptionalGetWithoutIsPresent - We're literally grabbing statically initialized fields. It'll be fine (TM).
-        return BuiltInRegistries.FLUID.getResourceKey(Fluids.LAVA).get().location().toString();
+        return BuiltInRegistries.FLUID.getResourceKey(Fluids.LAVA).get().identifier().toString();
     }
     
     protected static boolean validateFluid(Object element) {
         if (element instanceof String fluidString) {
             // Returns null on failure
-            ResourceLocation loc = ResourceLocation.tryParse(fluidString);
+            Identifier loc = Identifier.tryParse(fluidString);
             
             return loc != null && BuiltInRegistries.FLUID.containsKey(loc);
         }
@@ -79,7 +79,7 @@ public class ServerConfig {
     protected static boolean validateBlock(Object element) {
         if (element instanceof String blockString) {
             // Returns null on failure
-            ResourceLocation loc = ResourceLocation.tryParse(blockString);
+            Identifier loc = Identifier.tryParse(blockString);
             
             return loc != null && BuiltInRegistries.BLOCK.containsKey(loc);
         }
