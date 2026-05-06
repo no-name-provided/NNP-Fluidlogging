@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 import static net.minecraft.world.level.material.FlowingFluid.canPassThroughWall;
 
 @Mixin(FlowingFluid.class)
@@ -109,38 +110,38 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
             if (newFluidState.isEmpty()) {
                 // Make sure we use (and update) our data structure
                 fState = newFluidState;
-                bState = Blocks.AIR.defaultBlockState();
-                if (bState.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    if (bState.getValue(BlockStateProperties.WATERLOGGED)) {
-                        level.setBlock(pos, bState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
+                if (bState.hasProperty(WATERLOGGED)) {
+                    if (bState.getValue(WATERLOGGED)) {
+                        level.setBlock(pos, bState.setValue(WATERLOGGED, Boolean.FALSE), 3);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).map().remove(pos);
                     if (level instanceof ServerLevel sLevel) {
                         sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player -> {
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
-                                });
+                                .forEach(player ->
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                );
                     }
 //                    chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.markUnsaved();
                 } else {
+                    bState = Blocks.AIR.defaultBlockState();
                     level.setBlock(pos, bState, Block.UPDATE_ALL);
                 }
             } else if (!newFluidState.equals(fState)) {
                 // Make sure we use (and update) our data structure
                 fState = newFluidState;
-                if (bState.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    if (!bState.getValue(BlockStateProperties.WATERLOGGED)) {
-                        level.setBlock(pos, bState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
+                if (bState.hasProperty(WATERLOGGED)) {
+                    if (!bState.getValue(WATERLOGGED)) {
+                        level.setBlock(pos, bState.setValue(WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).map().put(pos, fState);
                     if (level instanceof ServerLevel sLevel) {
                         sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player -> {
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
-                                });
+                                .forEach(player ->
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                );
                     }
 //                    chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.markUnsaved();

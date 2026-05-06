@@ -90,7 +90,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         FluidState oldFluidState = fluidStates.getOrDefault(iPos, state.getFluidState());
         boolean wasLogged = state.getValue(WATERLOGGED);
         // Handle lighting
-        AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
+        AuxiliaryLightManager lManager = level.getAuxLightManager(iPos);
         boolean lManagerExists = lManager != null;
         
         if (
@@ -105,9 +105,9 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 if (fluidStates.remove(iPos) != null && !level.isClientSide()) {
                     if (level instanceof ServerLevel sLevel) {
                         sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player -> {
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
-                                });
+                                .forEach(player ->
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                );
                     }
 //                    chunk.syncData(FLUID_STATES);
                 }
@@ -125,18 +125,18 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 if (!level.isClientSide()) {
                     if (level instanceof ServerLevel sLevel) {
                         sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player -> {
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
-                                });
+                                .forEach(player ->
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                );
                     }
 //                    chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
-                    lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, pos));
+                    lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
                 }
                 if (level.isClientSide()) {
                     // Does nothing here
-                    ClientClassWrappers.setDirtyFromSharedCode(level, pos, state.setValue(WATERLOGGED, true), state.setValue(WATERLOGGED, false));
+                    ClientClassWrappers.setDirtyFromSharedCode(level, iPos, state.setValue(WATERLOGGED, true), state.setValue(WATERLOGGED, false));
                 }
                 chunk.markUnsaved();
             }

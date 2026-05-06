@@ -67,9 +67,9 @@ abstract class FFluidlogging_BlockBehavior {
                     if (!level.isClientSide()) {
                         if (level instanceof ServerLevel sLevel) {
                             sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                    .forEach(player -> {
-                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
-                                    });
+                                    .forEach(player ->
+                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                    );
                         }
 //                        chunk.syncData(FAttachments.FLUID_STATES);
                     }
@@ -111,9 +111,9 @@ abstract class FFluidlogging_BlockBehavior {
                 states.map().remove(pos);
                 if (level instanceof ServerLevel sLevel) {
                     sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                            .forEach(player -> {
-                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
-                            });
+                            .forEach(player ->
+                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                            );
                 }
 //                chunk.syncData(FAttachments.FLUID_STATES);
             }
@@ -164,9 +164,9 @@ abstract class FFluidlogging_BlockBehavior {
 //                chunk.syncData(FAttachments.FLUID_STATES);
                 if (level instanceof ServerLevel sLevel) {
                     sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                            .forEach(player -> {
-                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)));
-                            });
+                            .forEach(player ->
+                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                            );
                 }
                 chunk.markUnsaved();
             }

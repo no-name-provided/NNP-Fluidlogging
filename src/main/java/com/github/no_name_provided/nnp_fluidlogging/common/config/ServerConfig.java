@@ -18,7 +18,7 @@ import java.util.List;
 
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
-@EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = MODID)
 public class ServerConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
     
