@@ -9,6 +9,12 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
+/**
+ * The information associated with light level synchronization.
+ *
+ * @param lightLevel The light level at a BlockPos.
+ * @param blockPos   The BlockPos having its light adjusted.
+ */
 public record AuxLightManagerUpdatePayload(int lightLevel, long blockPos) implements CustomPacketPayload {
     public static CustomPacketPayload.Type<AuxLightManagerUpdatePayload> TYPE = new CustomPacketPayload.Type<>(
             Identifier.fromNamespaceAndPath(MODID, "aux_light_manager_update")

@@ -27,7 +27,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Important mixins - clear fluid from data structure when logged blocks are broken.
+ * Important mixins - clear fluid from data structure when logged blocks are broken. Force correct fluid to tick when a
+ * neighbor update is received.
+ * <p>
+ * While I wanted to make a minimal version of this mod that was easy to port, and avoided Neo events for this reason,
+ * it would be more idiomatic to replace these mixins with handlers for the corresponding events.
+ * </p>
  */
 @Mixin(BlockBehaviour.class)
 abstract class FFluidlogging_BlockBehavior {
@@ -68,7 +73,7 @@ abstract class FFluidlogging_BlockBehavior {
                         if (level instanceof ServerLevel sLevel) {
                             sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
                                     .forEach(player ->
-                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                            player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
                                     );
                         }
 //                        chunk.syncData(FAttachments.FLUID_STATES);
@@ -112,7 +117,7 @@ abstract class FFluidlogging_BlockBehavior {
                 if (level instanceof ServerLevel sLevel) {
                     sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
                             .forEach(player ->
-                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
                             );
                 }
 //                chunk.syncData(FAttachments.FLUID_STATES);
@@ -165,7 +170,7 @@ abstract class FFluidlogging_BlockBehavior {
                 if (level instanceof ServerLevel sLevel) {
                     sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
                             .forEach(player ->
-                                player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
                             );
                 }
                 chunk.markUnsaved();

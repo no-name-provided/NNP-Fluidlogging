@@ -14,8 +14,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class AuxLightManagerHandler {
     
     /**
-     * Updates light levels on client. Assumes packet is for current level. Cleaner solution than manually
-     * forcing chunk updates.
+     * Updates light levels on client. Assumes packet is for current level. Cleaner solution than manually forcing chunk
+     * updates.
      * <p>
      * The thread the supplied handler executes in depends on the {@link HandlerThread} set in
      * {@link PayloadRegistrar#executesOn}.

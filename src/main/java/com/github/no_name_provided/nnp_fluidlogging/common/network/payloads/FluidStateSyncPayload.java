@@ -10,6 +10,12 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
+/**
+ * The information associated with FluidStates synchronization.
+ *
+ * @param blockPos A location in the chunk.
+ * @param states   The FluidStates record to be associated with the chunk.
+ */
 public record FluidStateSyncPayload(BlockPos blockPos, FluidStates states) implements CustomPacketPayload {
     public static Type<FluidStateSyncPayload> TYPE = new Type<>(
             Identifier.fromNamespaceAndPath(MODID, "fluidstate_sync")

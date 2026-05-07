@@ -15,7 +15,7 @@
     "FFluidlogging_StairBlock"
   ],
   "client": [
-    "FFluidlogging_LiquidBlockRenderer",
+    "FFluidlogging_FluidRenderer",
     "FFluidlogging_RenderSectionRegion",
     "FFluidlogging_SectionCompiler"
   ],

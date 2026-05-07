@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * only a problem for mods that add transparent fluids, but it's a big graphical eyesore for those).
  */
 @Mixin(FluidRenderer.class)
-abstract class FFluidlogging_LiquidBlockRenderer {
+abstract class FFluidlogging_FluidRenderer {
     @Shadow @Final
     protected abstract float getHeight(BlockAndTintGetter level, Fluid fluidType, BlockPos pos, BlockState state, FluidState fluidState);
     
