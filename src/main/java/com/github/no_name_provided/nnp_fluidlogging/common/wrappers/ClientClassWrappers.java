@@ -6,10 +6,10 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * These methods will crash if called from a server context. They will not crash if a class which <i>could</i>
- * call them loads. These methods can be referenced in classes loaded on a dedicated server, so long aas they
- * aren't reachable. That isn't true for direct references to the client only classes they wrap. Use these
- * wrappers (rather than the methods they wrap) in common code.
+ * These methods will crash if called from a server context. They will not crash if a class which <i>could</i> call them
+ * loads. These methods can be referenced in classes loaded on a dedicated server, so long aas they aren't reachable.
+ * That isn't true for direct references to the client only classes they wrap. Use these wrappers (rather than the
+ * methods they wrap) in common code.
  */
 public class ClientClassWrappers {
     /**

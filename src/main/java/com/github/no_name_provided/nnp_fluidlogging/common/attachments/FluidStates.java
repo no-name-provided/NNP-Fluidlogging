@@ -8,7 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.material.FluidState;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A map from BlockPos to FluidState. Not prepopulated - a position without a fluidlogged block is a missing entry. Not
@@ -17,7 +17,7 @@ import java.util.HashMap;
  * This is stored in a record because it will be used for attachments, and those must be "immutable".
  * </p>
  */
-public record FluidStates(HashMap<BlockPos, FluidState> map) {
+public record FluidStates(ConcurrentHashMap<BlockPos, FluidState> map) {
     
     public static Codec<FluidStates> CODEC = RecordCodecBuilder.create(inst ->
             inst.group(
@@ -28,7 +28,7 @@ public record FluidStates(HashMap<BlockPos, FluidState> map) {
                                             .xmap(BlockPos::of, BlockPos::asLong),
                                     FluidState.CODEC
                                     // Workaround for overzealous type validation; should probably find a more efficient solution
-                            ).xmap(HashMap::new, HashMap::new)
+                            ).xmap(ConcurrentHashMap::new, ConcurrentHashMap::new)
                             .fieldOf("map").forGetter(FluidStates::map)
             ).apply(inst, FluidStates::new)
     );
