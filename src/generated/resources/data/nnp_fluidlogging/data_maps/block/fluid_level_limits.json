@@ -1,0 +1,484 @@
+{
+  "values": {
+    "minecraft:acacia_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:acacia_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:andesite_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:andesite_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:bamboo_mosaic_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:bamboo_mosaic_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:bamboo_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:bamboo_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:birch_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:birch_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:blackstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:blackstone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:cherry_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:cherry_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:cobbled_deepslate_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:cobbled_deepslate_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:cobblestone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:cobblestone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:crimson_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:crimson_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:cut_red_sandstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:cut_sandstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:dark_oak_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:dark_oak_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:dark_prismarine_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:dark_prismarine_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:deepslate_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:deepslate_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:deepslate_tile_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:deepslate_tile_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:diorite_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:diorite_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:end_stone_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:end_stone_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:exposed_cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:exposed_cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:granite_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:granite_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:jungle_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:jungle_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:mangrove_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:mangrove_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:mossy_cobblestone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:mossy_cobblestone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:mossy_stone_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:mossy_stone_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:mud_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:mud_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:nether_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:nether_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:oak_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:oak_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:oxidized_cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:oxidized_cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:pale_oak_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:pale_oak_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:petrified_oak_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_andesite_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_andesite_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:polished_blackstone_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_blackstone_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:polished_blackstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_blackstone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:polished_deepslate_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_deepslate_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:polished_diorite_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_diorite_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:polished_granite_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_granite_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:polished_tuff_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:polished_tuff_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:prismarine_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:prismarine_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:prismarine_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:prismarine_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:purpur_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:purpur_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:quartz_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:quartz_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:red_nether_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:red_nether_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:red_sandstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:red_sandstone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:resin_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:resin_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:sandstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:sandstone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:smooth_quartz_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:smooth_quartz_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:smooth_red_sandstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:smooth_red_sandstone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:smooth_sandstone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:smooth_sandstone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:smooth_stone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:spruce_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:spruce_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:stone_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:stone_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:stone_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:stone_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:tuff_brick_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:tuff_brick_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:tuff_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:tuff_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:warped_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:warped_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:waxed_cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:waxed_cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:waxed_exposed_cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:waxed_exposed_cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:waxed_oxidized_cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:waxed_oxidized_cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:waxed_weathered_cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:waxed_weathered_cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    },
+    "minecraft:weathered_cut_copper_slab": {
+      "max_callback": "nnp_fluidlogging:slab_max",
+      "min_callback": "nnp_fluidlogging:slab_min"
+    },
+    "minecraft:weathered_cut_copper_stairs": {
+      "max_callback": "nnp_fluidlogging:stair_max",
+      "min_callback": "nnp_fluidlogging:stair_min"
+    }
+  }
+}

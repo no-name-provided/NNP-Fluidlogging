@@ -2,6 +2,7 @@ package com.github.no_name_provided.nnp_fluidlogging;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
+import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.entries.FluidLevelCallbacks;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -23,6 +24,8 @@ public class NNP_Fluidlogging {
     public NNP_Fluidlogging(IEventBus modEventBus, ModContainer modContainer) {
         // Add all our deferred registries to the mod registration queue
         FAttachments.register(modEventBus);
+        FluidLevelCallbacks.register(modEventBus);
+        
         // Register our configs.
         // The file itself is registered on both sides
         modContainer.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
