@@ -60,7 +60,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos blockpos = blockpos$mutableblockpos.setWithOffset(pos, direction);
             BlockState blockstate = level.getBlockState(blockpos);
-//            FluidState fluidstate = blockstate.getFluidState();
             FluidState fluidstate = level.getFluidState(blockpos);
             if (fluidstate.getType().isSame(flowingFluid) && canPassThroughWall(direction, level, pos, state, blockpos, blockstate)) {
                 // Trick Neo event into thinking we're looking at a liquid block, so vanillaResult calculates the correct value
@@ -74,7 +73,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         
         if (j >= 2) {
             BlockState blockstate1 = level.getBlockState(blockpos$mutableblockpos.setWithOffset(pos, Direction.DOWN));
-            //FluidState fluidstate1 = blockstate1.getFluidState();
             FluidState fluidstate1 = level.getFluidState(pos.below());
             //noinspection deprecation - copied from vanilla
             if (blockstate1.isSolid() || flowingFluid.isSourceBlockOfThisType(fluidstate1)) {
@@ -86,7 +84,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         
         BlockPos blockpos1 = blockpos$mutableblockpos.setWithOffset(pos, Direction.UP);
         BlockState blockstate2 = level.getBlockState(blockpos1);
-//        FluidState fluidstate2 = blockstate2.getFluidState();
         FluidState fluidstate2 = level.getFluidState(blockpos1);
         if (!fluidstate2.isEmpty()
                 && fluidstate2.getType().isSame(flowingFluid)
