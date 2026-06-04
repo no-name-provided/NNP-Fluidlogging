@@ -8,6 +8,9 @@ import net.neoforged.neoforge.registries.datamaps.DataMapType;
 
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
+/**
+ * Define our DataMap types, for registration in the appropriate event.
+ */
 public class FDataMaps {
     public static final DataMapType<Block, BlockStateFluidLevelLimits> BLOCKSTATE_FLUID_LEVEL_LIMITS = DataMapType.builder(
                     // Data map files will be located at [MODID]:MODID/data_maps/block/fluid_level_limits.json.

@@ -15,13 +15,17 @@ import java.util.function.BiFunction;
  * fluids in BlockStates associated with that block. We use callbacks so you can return a state-specific value, even
  * though BlockStates aren't registry objects.
  * <p>
- * Normal fluids range from 0 to 8, with (still) fluid height being calculated as LEVEL/9. This means fluid height
+ * Normal fluids range from 1 to 8, with (still) fluid height being calculated as LEVEL/9. This means fluid height
  * normally ranges from 1/9=0.111... to 8/9=0.888... of a full block (which is itself 16 pixels high on most vanilla
- * textures).
+ * textures). However, the hard caps are 0 (no fluid) and 9 (a full block).
+ * </p>
+ * <p>
+ * Implementation inspired by net.minecraft.world.level.timers.FunctionCallback, which appears to have a similar
+ * implementation.
  * </p>
  *
  * @param minLevelCallback If null, will default to vanilla (0).
- * @param maxLevelCallback If null, will default to vanilla (8).
+ * @param maxLevelCallback If null, will default to vanilla (9).
  */
 public record BlockStateFluidLevelLimits(
         BiFunction<BlockState, FluidType, Integer> minLevelCallback,
@@ -50,7 +54,7 @@ public record BlockStateFluidLevelLimits(
             minLevelCallback = FluidLevelCallbacks.CONSTANTS.getFirst().get();
         }
         if (maxLevelCallback == null) {
-            maxLevelCallback = FluidLevelCallbacks.CONSTANTS.get(8).get();
+            maxLevelCallback = FluidLevelCallbacks.CONSTANTS.get(9).get();
         }
     }
     

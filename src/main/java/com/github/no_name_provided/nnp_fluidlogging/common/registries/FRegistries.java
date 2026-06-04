@@ -11,6 +11,9 @@ import java.util.function.BiFunction;
 
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
+/**
+ * Define our custom registries.
+ */
 public class FRegistries {
     public static final ResourceKey<Registry<BiFunction<BlockState, FluidType, Integer>>> FLUID_LEVEL_CALLBACKS =
             ResourceKey.createRegistryKey(
@@ -18,6 +21,9 @@ public class FRegistries {
                             "fluid_level_callbacks")
             );
     
+    /**
+     * A registry of callbacks that calculate permissible fluid levels.
+     */
     public static final Registry<BiFunction<BlockState, FluidType, Integer>> FLUID_LEVEL_CALLBACKS_REGISTRY =
             new RegistryBuilder<>(FLUID_LEVEL_CALLBACKS)
                     .sync(true)

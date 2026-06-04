@@ -17,6 +17,13 @@ import java.util.function.Supplier;
 
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
+/**
+ * Register FluidLevelCallbacks, both for our own use and for datapack/modpack developers. These are used to calculate
+ * the minimum and maximum fluid level for each block, as a function of its BlockState and FluidType.
+ * <p>
+ * They're a registry so we can use their identifiers to reference them in data-driven content, like DataMaps.
+ * </p>
+ */
 public class FluidLevelCallbacks {
     public static DeferredRegister<BiFunction<BlockState, FluidType, Integer>> FLUID_LEVEL_CALLBACKS = DeferredRegister.create(
             FRegistries.FLUID_LEVEL_CALLBACKS_REGISTRY,
@@ -57,13 +64,19 @@ public class FluidLevelCallbacks {
             }
     );
     
+    /**
+     * Generate a callback that returns a constant. Useful for loggable blocks without vertically distinct blockstates.
+     */
     public static BiFunction<BlockState, FluidType, Integer> generateConstant(Integer constant) {
         
         return (_, _) -> constant;
     }
     
+    /**
+     * Provide a constant callback for each vanilla fluid level.
+     */
     public static void populateConstants() {
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 10; i++) {
             int finalI = i;
             CONSTANTS.add(
                     FLUID_LEVEL_CALLBACKS.register(
@@ -74,6 +87,10 @@ public class FluidLevelCallbacks {
         }
     }
     
+    /**
+     * Register this deferred register to the mod event bus. Wouldn't be Neo if we didn't have to manually register
+     * registries.
+     */
     public static void register(IEventBus modBus) {
         populateConstants();
         

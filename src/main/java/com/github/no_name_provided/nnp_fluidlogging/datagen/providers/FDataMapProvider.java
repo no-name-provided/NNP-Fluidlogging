@@ -14,6 +14,9 @@ import net.neoforged.neoforge.common.data.DataMapProvider;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * The provider that populates our DataMaps.
+ */
 @ParametersAreNonnullByDefault
 public class FDataMapProvider extends DataMapProvider {
     /**
