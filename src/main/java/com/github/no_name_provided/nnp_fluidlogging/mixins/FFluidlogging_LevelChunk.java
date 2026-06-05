@@ -29,7 +29,7 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
     private Level level;
     
     public FFluidlogging_LevelChunk(ChunkPos chunkPos, UpgradeData upgradeData, LevelHeightAccessor levelHeightAccessor, PalettedContainerFactory palettedContainerFactory, long inhabitedTime, @Nullable LevelChunkSection[] sections, @Nullable BlendingData blendingData) {
-        //noinspection NullableProblems - this titally expects nullable parameters; also, this isn't actually used
+        //noinspection NullableProblems - this totally expects nullable parameters; also, this isn't actually used
         super(chunkPos, upgradeData, levelHeightAccessor, palettedContainerFactory, inhabitedTime, sections, blendingData);
     }
     

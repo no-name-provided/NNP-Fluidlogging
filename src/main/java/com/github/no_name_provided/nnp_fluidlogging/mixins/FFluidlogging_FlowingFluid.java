@@ -1,6 +1,7 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
+import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.FluidStateSyncPayload;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
@@ -22,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 import static net.minecraft.world.level.material.FlowingFluid.canPassThroughWall;
 
@@ -104,6 +106,18 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         if (!fState.isSource()) {
             FluidState newFluidState = thisFluid.getNewLiquid(level, pos, level.getBlockState(pos));
             int i = thisFluid.getSpreadDelay(level, pos, fState, newFluidState);
+            //-----------------------------------
+            // Respect our level limits - consider refactoring to use some kind of unified fluid placement helper
+            @SuppressWarnings("deprecation") // Probably more efficient than a registry lookup
+            BlockStateFluidLevelLimits levelLimits = bState.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
+            if (levelLimits != null && newFluidState.getAmount() < levelLimits.getMinLevel(bState, newFluidState.getFluidType())) {
+                
+                newFluidState = Fluids.EMPTY.defaultFluidState();
+            } else if (levelLimits != null && newFluidState.getAmount() > levelLimits.getMaxLevel(bState, newFluidState.getFluidType())) {
+                // Makes sure the level isn't too high
+                newFluidState = newFluidState.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(bState, newFluidState.getFluidType()));
+            }
+            //-------------------------------------
             if (newFluidState.isEmpty()) {
                 // Make sure we use (and update) our data structure
                 fState = newFluidState;

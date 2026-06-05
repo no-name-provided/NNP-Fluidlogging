@@ -83,17 +83,19 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Lies! This is secretly mutable, and violates the substitution principle
             BlockPos pos,
             BlockState state,
-            FluidState fluidState,
+            FluidState nominalFluidState,
             Operation<Boolean> original
     ) {
+        FluidState fluidState = nominalFluidState;
         // Nope out and return early if the fluid level is too low for the block
         @SuppressWarnings("deprecation") // probably more efficient than a registry lookup
         BlockStateFluidLevelLimits levelLimits = state.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
-        if (levelLimits != null && fluidState.getAmount() < levelLimits.getMinLevel(state, fluidState.getFluidType())) {
+        if (levelLimits != null && nominalFluidState.getAmount() < levelLimits.getMinLevel(state, nominalFluidState.getFluidType())) {
             
             return false;
-        } else if (levelLimits != null && fluidState.getAmount() > levelLimits.getMaxLevel(state, fluidState.getFluidType())) {
-            fluidState = fluidState.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(state, fluidState.getFluidType()));
+        } else if (levelLimits != null && nominalFluidState.getAmount() > levelLimits.getMaxLevel(state, nominalFluidState.getFluidType())) {
+            // Makes sure the level isn't too high
+            fluidState = nominalFluidState.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(state, nominalFluidState.getFluidType()));
         }
         
         // Get current states
