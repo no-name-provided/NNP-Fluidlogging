@@ -33,7 +33,6 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
         super(chunkPos, upgradeData, levelHeightAccessor, palettedContainerFactory, inhabitedTime, sections, blendingData);
     }
     
-    
     /**
      * Does most of the heavy lifting of making functional fluidstate checks prefer our attachment over the cached,
      * hardcoded blockstate default.
