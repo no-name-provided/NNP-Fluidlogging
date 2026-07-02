@@ -30,7 +30,7 @@ abstract class FFluidlogging_LiquidBlock extends Block implements BucketPickup {
     }
     
     /**
-     * Probably not be necessary, or even counterproductive, since LiquidBlock can't be fluidlogged. Attempt to fix
+     * Probably not necessary, or even counterproductive, since LiquidBlock can't be fluidlogged. Attempt to fix
      * fluid interactions.
      */
     @Inject(method = "randomTick(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V",

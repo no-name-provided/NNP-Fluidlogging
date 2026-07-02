@@ -47,6 +47,7 @@ public record FluidStates(ConcurrentHashMap<BlockPos, FluidState> map,
      * @param state The old FluidState at that position (or null, if there was none).
      * @return The new FluidState
      */
+    @SuppressWarnings("UnusedReturnValue") // matches signature of wrapped method
     public @Nullable FluidState put(BlockPos pos, FluidState state) {
         map().put(pos, state);
         return unsyncedUpdates().put(pos, state);
@@ -65,7 +66,7 @@ public record FluidStates(ConcurrentHashMap<BlockPos, FluidState> map,
     /**
      * Wrapper for internal map method of same name.
      */
-    public @Nullable FluidState get(BlockPos pos, FluidState defaultState) {
+    public @Nullable FluidState get(BlockPos pos) {
         return map().get(pos);
     }
     
@@ -77,7 +78,7 @@ public record FluidStates(ConcurrentHashMap<BlockPos, FluidState> map,
     }
     
     /**
-     * Wrapper for internal map method of same name. Adds adds empty entry in update map.
+     * Wrapper for internal map method of same name. Adds empty entry in update map.
      *
      * @return The value that was removed, or null if not present.
      */

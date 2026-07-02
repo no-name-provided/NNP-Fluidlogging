@@ -126,12 +126,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).remove(pos);
-//                    if (level instanceof ServerLevel sLevel) {
-//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-//                                .forEach(player ->
-//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-//                                );
-//                    }
                     chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.markUnsaved();
                 } else {
@@ -147,12 +141,6 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).put(pos, fState);
-//                    if (level instanceof ServerLevel sLevel) {
-//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-//                                .forEach(player ->
-//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-//                                );
-//                    }
                     chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.markUnsaved();
                 } else {

@@ -69,12 +69,6 @@ abstract class FFluidlogging_BlockBehavior {
                     // Since they can't be logged, it's always correct
                     chunk.getData(FAttachments.FLUID_STATES).put(pos, oldState.getFluidState());
                     if (!level.isClientSide()) {
-//                        if (level instanceof ServerLevel sLevel) {
-//                            sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-//                                    .forEach(player ->
-//                                            player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-//                                    );
-//                        }
                         chunk.syncData(FAttachments.FLUID_STATES);
                     }
                     AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
@@ -113,12 +107,6 @@ abstract class FFluidlogging_BlockBehavior {
             if (!level.isClientSide()) {
                 FluidStates states = chunk.getData(FAttachments.FLUID_STATES);
                 states.remove(pos);
-//                if (level instanceof ServerLevel sLevel) {
-//                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-//                            .forEach(player ->
-//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-//                            );
-//                }
                 chunk.syncData(FAttachments.FLUID_STATES);
             }
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
@@ -166,12 +154,6 @@ abstract class FFluidlogging_BlockBehavior {
             // This is fine, since we shouldn't have null values in this map
             if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).remove(pos) != null) {
                 chunk.syncData(FAttachments.FLUID_STATES);
-//                if (level instanceof ServerLevel sLevel) {
-//                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-//                            .forEach(player ->
-//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-//                            );
-//                }
                 chunk.markUnsaved();
             }
             

@@ -13,6 +13,9 @@ import org.jspecify.annotations.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Tells NeoForge's built-in attachment synchronization to only send those map entries that actually changed.
+ */
 @ParametersAreNonnullByDefault @MethodsReturnNonnullByDefault
 public class FluidStatesAttachmentSyncHandler implements AttachmentSyncHandler<FluidStates> {
     

@@ -116,12 +116,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             if (fluidState.is(Fluids.WATER) && fluidState.isSource()) {
                 // Only sync if we actually update our data structure
                 if (fluidStates.remove(iPos) != null && !level.isClientSide()) {
-//                    if (level instanceof ServerLevel sLevel) {
-//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-//                                .forEach(player ->
-//                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-//                                );
-//                    }
                     chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
@@ -136,12 +130,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             } else {
                 fluidStates.put(iPos, fluidState);
                 if (!level.isClientSide()) {
-//                    if (level instanceof ServerLevel sLevel) {
-//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-//                                .forEach(player ->
-//                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-//                                );
-//                    }
                     chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
@@ -193,7 +181,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         AuxiliaryLightManager lManager = level.getAuxLightManager(iPos);
         boolean lManagerExists = lManager != null;
         // For vanilla support, we default to the blockstate based waterlogging check
-        FluidState fluidState = states.map().getOrDefault(iPos, chunk.getFluidState(iPos));
+        FluidState fluidState = states.getOrDefault(iPos, chunk.getFluidState(iPos));
         
         // Vanilla default for waterlogged blocks. For consistency with worldgenned waterlogged blocks, water is _not_
         // stored in our data structure. Instead, it's represented by a waterlogged=true block without a corresponding
@@ -204,7 +192,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.cancel();
             // Only matches source blocks (flowing blocks are a different class)
         } else if (fluidState.is(Fluids.LAVA)) {
-            states.map().remove(iPos);
+            states.remove(iPos);
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
@@ -214,7 +202,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Lava has a weird, limited type implementation, so we don't trust it
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
-            states.map().remove(iPos);
+            states.remove(iPos);
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
@@ -224,7 +212,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // TODO: test with partial fluid implementations (no flowing, bucket, etc.)
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
         } else {
-            states.map().remove(iPos);
+            states.remove(iPos);
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
