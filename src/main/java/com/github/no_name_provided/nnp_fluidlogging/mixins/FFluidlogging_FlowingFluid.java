@@ -2,7 +2,6 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
-import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.FluidStateSyncPayload;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -126,14 +125,14 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                         level.setBlock(pos, bState.setValue(WATERLOGGED, Boolean.FALSE), 3);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).map().remove(pos);
-                    if (level instanceof ServerLevel sLevel) {
-                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player ->
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-                                );
-                    }
-//                    chunk.syncData(FAttachments.FLUID_STATES);
+                    chunk.getData(FAttachments.FLUID_STATES).remove(pos);
+//                    if (level instanceof ServerLevel sLevel) {
+//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+//                                .forEach(player ->
+//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+//                                );
+//                    }
+                    chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.markUnsaved();
                 } else {
                     bState = Blocks.AIR.defaultBlockState();
@@ -147,14 +146,14 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                         level.setBlock(pos, bState.setValue(WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, fState);
-                    if (level instanceof ServerLevel sLevel) {
-                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player ->
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-                                );
-                    }
-//                    chunk.syncData(FAttachments.FLUID_STATES);
+                    chunk.getData(FAttachments.FLUID_STATES).put(pos, fState);
+//                    if (level instanceof ServerLevel sLevel) {
+//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+//                                .forEach(player ->
+//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+//                                );
+//                    }
+                    chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.markUnsaved();
                 } else {
                     bState = newFluidState.createLegacyBlock();

@@ -4,7 +4,6 @@ import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachme
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
-import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.FluidStateSyncPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -68,15 +67,15 @@ abstract class FFluidlogging_BlockBehavior {
                     ChunkAccess chunk = level.getChunk(pos);
                     // We don't need to avoid #getFluidState for liquid blocks.
                     // Since they can't be logged, it's always correct
-                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, oldState.getFluidState());
+                    chunk.getData(FAttachments.FLUID_STATES).put(pos, oldState.getFluidState());
                     if (!level.isClientSide()) {
-                        if (level instanceof ServerLevel sLevel) {
-                            sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                    .forEach(player ->
-                                            player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-                                    );
-                        }
-//                        chunk.syncData(FAttachments.FLUID_STATES);
+//                        if (level instanceof ServerLevel sLevel) {
+//                            sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+//                                    .forEach(player ->
+//                                            player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+//                                    );
+//                        }
+                        chunk.syncData(FAttachments.FLUID_STATES);
                     }
                     AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
                     if (lManager != null) {
@@ -113,14 +112,14 @@ abstract class FFluidlogging_BlockBehavior {
             ChunkAccess chunk = level.getChunk(pos);
             if (!level.isClientSide()) {
                 FluidStates states = chunk.getData(FAttachments.FLUID_STATES);
-                states.map().remove(pos);
-                if (level instanceof ServerLevel sLevel) {
-                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                            .forEach(player ->
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-                            );
-                }
-//                chunk.syncData(FAttachments.FLUID_STATES);
+                states.remove(pos);
+//                if (level instanceof ServerLevel sLevel) {
+//                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+//                            .forEach(player ->
+//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+//                            );
+//                }
+                chunk.syncData(FAttachments.FLUID_STATES);
             }
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
             if (lManager != null) {
@@ -165,14 +164,14 @@ abstract class FFluidlogging_BlockBehavior {
         if (!newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             ChunkAccess chunk = level.getChunk(pos);
             // This is fine, since we shouldn't have null values in this map
-            if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).map().remove(pos) != null) {
-//                chunk.syncData(FAttachments.FLUID_STATES);
-                if (level instanceof ServerLevel sLevel) {
-                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                            .forEach(player ->
-                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-                            );
-                }
+            if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).remove(pos) != null) {
+                chunk.syncData(FAttachments.FLUID_STATES);
+//                if (level instanceof ServerLevel sLevel) {
+//                    sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+//                            .forEach(player ->
+//                                    player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+//                            );
+//                }
                 chunk.markUnsaved();
             }
             

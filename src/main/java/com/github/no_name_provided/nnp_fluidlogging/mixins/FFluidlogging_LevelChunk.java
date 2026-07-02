@@ -56,6 +56,6 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
         ).getData(FLUID_STATES);
         
         // Might have a recursion issue somewhere with this default value
-        cir.setReturnValue(states.map().getOrDefault(new BlockPos(x, y, z), level.getBlockState(new BlockPos(x, y, z)).getFluidState()));
+        cir.setReturnValue(states.getOrDefault(new BlockPos(x, y, z), level.getBlockState(new BlockPos(x, y, z)).getFluidState()));
     }
 }

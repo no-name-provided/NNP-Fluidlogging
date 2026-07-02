@@ -47,7 +47,7 @@ abstract class FFluidlogging_LiquidBlock extends Block implements BucketPickup {
     @Redirect(method = "onPlace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;I)V"))
     private void nnp_f_fluidlogging_onPlace_fixScheduleTick(Level level, BlockPos pos, Fluid fluid, int tickDelay) {
-        FluidState state = level.getChunk(pos).getData(FLUID_STATES).map().getOrDefault(pos, fluid.defaultFluidState());
+        FluidState state = level.getChunk(pos).getData(FLUID_STATES).getOrDefault(pos, fluid.defaultFluidState());
         level.scheduleTick(pos, state.getType(), state.getType().getTickDelay(level));
     }
 }

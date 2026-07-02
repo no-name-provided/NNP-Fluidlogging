@@ -51,6 +51,6 @@ abstract class FFluidlogging_RenderSectionRegion implements BlockAndTintGetter {
             at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getFluidState(BlockPos pos, CallbackInfoReturnable<FluidState> cir) {
         LevelChunk chunk = this.NNPFluidlogging$getContainingChunk(ChunkPos.containing(pos));
-        cir.setReturnValue(chunk.getData(FLUID_STATES).map().getOrDefault(pos, chunk.getBlockState(pos).getFluidState()));
+        cir.setReturnValue(chunk.getData(FLUID_STATES).getOrDefault(pos, chunk.getBlockState(pos).getFluidState()));
     }
 }

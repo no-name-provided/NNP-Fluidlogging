@@ -24,7 +24,7 @@ public class CommonEvents {
      *
      * @param event The event being handled.
      */
-    @SubscribeEvent
+//    @SubscribeEvent
     static void onChunkStartWatch(ChunkWatchEvent.Sent event) {
         event.getPlayer().connection.send(new FluidStateSyncPayload(
                 event.getPos().getWorldPosition(),

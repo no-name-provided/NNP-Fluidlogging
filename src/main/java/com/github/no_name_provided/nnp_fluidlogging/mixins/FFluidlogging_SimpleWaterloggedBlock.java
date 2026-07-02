@@ -1,10 +1,8 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
-import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
-import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.FluidStateSyncPayload;
 import com.github.no_name_provided.nnp_fluidlogging.common.wrappers.ClientClassWrappers;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -33,7 +31,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
@@ -102,7 +99,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         // Ensure we don't accidentally pass a MutableBlockPos to a buffer, since they violate the Liskov Substitution Principle
         BlockPos iPos = pos.immutable();
         ChunkAccess chunk = level.getChunk(iPos);
-        Map<BlockPos, FluidState> fluidStates = chunk.getData(FLUID_STATES).map();
+        FluidStates fluidStates = chunk.getData(FLUID_STATES);
         FluidState oldFluidState = fluidStates.getOrDefault(iPos, state.getFluidState());
         boolean wasLogged = state.getValue(WATERLOGGED);
         // Handle lighting
@@ -119,13 +116,13 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             if (fluidState.is(Fluids.WATER) && fluidState.isSource()) {
                 // Only sync if we actually update our data structure
                 if (fluidStates.remove(iPos) != null && !level.isClientSide()) {
-                    if (level instanceof ServerLevel sLevel) {
-                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player ->
-                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-                                );
-                    }
-//                    chunk.syncData(FLUID_STATES);
+//                    if (level instanceof ServerLevel sLevel) {
+//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+//                                .forEach(player ->
+//                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+//                                );
+//                    }
+                    chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
                     lManager.removeLightAt(iPos);
@@ -139,13 +136,13 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             } else {
                 fluidStates.put(iPos, fluidState);
                 if (!level.isClientSide()) {
-                    if (level instanceof ServerLevel sLevel) {
-                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
-                                .forEach(player ->
-                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
-                                );
-                    }
-//                    chunk.syncData(FLUID_STATES);
+//                    if (level instanceof ServerLevel sLevel) {
+//                        sLevel.getPlayers(player -> player.shouldRender(pos.getX(), pos.getY(), pos.getZ()))
+//                                .forEach(player ->
+//                                        player.connection.send(new FluidStateSyncPayload(pos, chunk.getData(FAttachments.FLUID_STATES)))
+//                                );
+//                    }
+                    chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
                     lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));

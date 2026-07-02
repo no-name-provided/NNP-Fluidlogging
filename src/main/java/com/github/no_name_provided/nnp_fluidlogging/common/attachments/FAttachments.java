@@ -1,5 +1,6 @@
 package com.github.no_name_provided.nnp_fluidlogging.common.attachments;
 
+import com.github.no_name_provided.nnp_fluidlogging.common.attachments.sync.FluidStatesAttachmentSyncHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -11,8 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
 /**
- * Neo only. Create and register attachment types. These reference the data structures we use to store
- * information that needs to be persistent or synchronized.
+ * Neo only. Create and register attachment types. These reference the data structures we use to store information that
+ * needs to be persistent or synchronized.
  */
 public class FAttachments {
     public static DeferredRegister<AttachmentType<?>> FATTACHMENTS = DeferredRegister.create(
@@ -23,8 +24,13 @@ public class FAttachments {
      * The attachment we use to store fluid information for logged blocks.
      */
     public static DeferredHolder<AttachmentType<?>, AttachmentType<FluidStates>> FLUID_STATES = FATTACHMENTS.register(
-            "fluid_states", () -> AttachmentType.builder(() -> new FluidStates(new ConcurrentHashMap<>()))
-//                    .sync(FluidStates.STREAM_CODEC)
+            "fluid_states", () -> AttachmentType.builder(() -> new FluidStates(
+                            new ConcurrentHashMap<>(),
+                            new ConcurrentHashMap<>()
+                    ))
+                    // Only send those map entries that were actually changed -
+                    // should stop chunks with lots of logged blocks from getting laggy/having oversized packets
+                    .sync(new FluidStatesAttachmentSyncHandler())
                     .serialize(FluidStates.CODEC.fieldOf("fluid_states")).build()
     );
     
