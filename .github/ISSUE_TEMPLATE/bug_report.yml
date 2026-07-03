@@ -1,0 +1,50 @@
+name: Bug Report
+description: Use this to report bugs.
+title: "[Bug] "
+labels: ["bug", "Minecraft"]
+body:
+  - type: textarea
+    attributes:
+      label: |
+        
+        **Describe the bug**
+      placeholder: |
+        A clear and concise placeholder of what the bug is. Include both what happened and what you expected to happen.
+  - type: textarea
+    attributes:
+      label: |
+        
+        **To Reproduce**
+      placeholder: |
+        Steps to reproduce the behavior:
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+  - type: textarea
+    attributes:
+      label: |
+        
+        **Expected behavior**
+      placeholder: |
+        A clear and concise placeholder of what you expected to happen.
+        
+        **Screenshots**
+        If applicable, add screenshots to help explain your problem.
+  - type: textarea
+    attributes:
+      label: |
+        
+        **Versions**
+      placeholder: |
+        Mod Version:
+        Minecraft Version:
+        NeoForge Version:
+        Link to modpack (if relevant):
+  - type: textarea
+    attributes:
+      label: |
+        
+        **Additional Information**
+      placeholder: |
+        Add any other context about the problem here.
