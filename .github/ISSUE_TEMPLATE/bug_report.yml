@@ -28,6 +28,9 @@ body:
         **Expected behavior**
       placeholder: |
         An expanded description of what you expected to happen (optional).
+  - type: textarea
+    attributes:
+      label: |
         
         **Screenshots**
         If applicable, add screenshots to help explain your problem.
