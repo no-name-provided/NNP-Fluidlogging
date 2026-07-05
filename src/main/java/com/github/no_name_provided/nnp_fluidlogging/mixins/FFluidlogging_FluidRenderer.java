@@ -10,7 +10,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -178,6 +177,7 @@ abstract class FFluidlogging_FluidRenderer {
             }
         }
         
-        return Fluids.EMPTY.defaultFluidState();
+        // We can't assume this is empty, as it might be like kelp (a fluid container that isn't waterloggable)
+        return state.getFluidState();
     }
 }

@@ -1,22 +1,21 @@
 package com.github.no_name_provided.nnp_fluidlogging.common.attachments.sync;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
-import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.attachment.AttachmentSyncHandler;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import org.jetbrains.annotations.NotNullByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Tells NeoForge's built-in attachment synchronization to only send those map entries that actually changed.
  */
-@ParametersAreNonnullByDefault @MethodsReturnNonnullByDefault
+@NotNullByDefault
 public class FluidStatesAttachmentSyncHandler implements AttachmentSyncHandler<FluidStates> {
     
     /**

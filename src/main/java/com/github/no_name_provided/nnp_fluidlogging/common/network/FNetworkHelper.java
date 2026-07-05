@@ -1,19 +1,17 @@
 package com.github.no_name_provided.nnp_fluidlogging.common.network;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
-import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
-
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.jetbrains.annotations.NotNullByDefault;
 
 /**
  * Collects, documents, and unifies common network tasks.
  */
-@ParametersAreNonnullByDefault @MethodsReturnNonnullByDefault
+@NotNullByDefault
 public class FNetworkHelper {
     
     /**
