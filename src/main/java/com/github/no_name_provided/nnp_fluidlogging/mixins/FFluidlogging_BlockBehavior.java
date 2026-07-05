@@ -3,6 +3,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
+import com.github.no_name_provided.nnp_fluidlogging.common.network.FNetworkHelper;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -71,10 +72,11 @@ abstract class FFluidlogging_BlockBehavior {
                     if (!level.isClientSide()) {
                         chunk.syncData(FAttachments.FLUID_STATES);
                     }
-                    AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
-                    if (lManager != null) {
-                        lManager.setLightAt(pos, oldState.getFluidState().getFluidType().getLightLevel(oldState.getFluidState(), level, pos));
-                    }
+                    FNetworkHelper.setLightAtPos(
+                            pos.immutable(),
+                            oldState.getFluidState().getFluidType().getLightLevel(oldState.getFluidState(), level, pos),
+                            level
+                    );
                     if (!level.isClientSide()) {
                         // This must come last, otherwise the incorrect FluidState will be used for the block updates
                         level.setBlock(pos, newState.setValue(BlockStateProperties.WATERLOGGED, true), Block.UPDATE_ALL);
@@ -111,7 +113,7 @@ abstract class FFluidlogging_BlockBehavior {
             }
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
             if (lManager != null) {
-                lManager.removeLightAt(pos);
+                FNetworkHelper.clearLightAtPos(pos, level);
             }
             chunk.markUnsaved();
             // Fixes desync issue
@@ -150,16 +152,14 @@ abstract class FFluidlogging_BlockBehavior {
             at = @At("TAIL"))
     private void nnp_f_fluidlogging_affectNeighborsAfterRemoval(BlockState newState, ServerLevel level, BlockPos pos, boolean movedByPiston, CallbackInfo ci) {
         if (!newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+            // Update cached light level
+            FNetworkHelper.clearLightAtPos(pos.immutable(), level);
+            
             ChunkAccess chunk = level.getChunk(pos);
             // This is fine, since we shouldn't have null values in this map
             if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).remove(pos) != null) {
                 chunk.syncData(FAttachments.FLUID_STATES);
                 chunk.markUnsaved();
-            }
-            
-            AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
-            if (lManager != null) {
-                lManager.removeLightAt(pos);
             }
             if (ServerConfig.forceChunkUpdates) {
                 if (level instanceof ServerLevel sLevel && level.getChunk(pos) instanceof LevelChunk lChunk) {
@@ -171,14 +171,6 @@ abstract class FFluidlogging_BlockBehavior {
                             }
                     );
                 }
-            } else if (level instanceof ServerLevel sLevel) {
-                // Send our custom light level update packet
-                sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
-                        player.connection.send(new AuxLightManagerUpdatePayload(
-                                // Setting the light level to 0 is the same as calling #removeLightAt
-                                0,
-                                pos.asLong()))
-                );
             }
         }
     }

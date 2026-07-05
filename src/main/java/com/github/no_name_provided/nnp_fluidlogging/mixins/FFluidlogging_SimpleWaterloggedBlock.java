@@ -3,6 +3,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
+import com.github.no_name_provided.nnp_fluidlogging.common.network.FNetworkHelper;
 import com.github.no_name_provided.nnp_fluidlogging.common.wrappers.ClientClassWrappers;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -118,9 +119,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 if (fluidStates.remove(iPos) != null && !level.isClientSide()) {
                     chunk.syncData(FLUID_STATES);
                 }
-                if (lManagerExists) {
-                    lManager.removeLightAt(iPos);
-                }
+                FNetworkHelper.clearLightAtPos(iPos, level);
                 if (level.isClientSide()) {
                     // Strangely, this is the one place where setting the blocks dirty actually had an effect on rendering
                     ClientClassWrappers.setDirtyFromSharedCode(level, pos, state.setValue(WATERLOGGED, true), state.setValue(WATERLOGGED, false));
@@ -133,7 +132,11 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                     chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
-                    lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
+                    int lightLevel = fluidState.getFluidType().getLightLevel(fluidState, level, iPos);
+                    lManager.setLightAt(iPos, lightLevel);
+                    if (level instanceof ServerLevel sLevel) {
+                        FNetworkHelper.syncLightAtPos(iPos, sLevel, lManager);
+                    }
                 }
                 if (level.isClientSide()) {
                     // Does nothing here
@@ -196,6 +199,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
+                FNetworkHelper.clearClientLightAtPos(iPos, level);
             }
             chunk.markUnsaved();
             
@@ -207,6 +211,9 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
+                if (level instanceof ServerLevel sLevel) {
+                    FNetworkHelper.syncLightAtPos(iPos, sLevel, lManager);
+                }
             }
             chunk.markUnsaved();
             
@@ -217,7 +224,11 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Doesn't seem to be needed? Marking unsaved downstream seems to cover it
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
+                FNetworkHelper.clearLightAtPos(iPos, level);
                 lManager.removeLightAt(iPos);
+                if (level instanceof ServerLevel sLevel) {
+                    FNetworkHelper.syncLightAtPos(iPos, sLevel, lManager);
+                }
             }
             chunk.markUnsaved();
             

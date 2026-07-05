@@ -28,9 +28,8 @@ public interface FFluidlogging_IBlockExtension {
     }
     
     /**
-     * Allows fluidlogged blocks to propagate/emit the higher of the two light levels (fluid vs block). Not to be
-     * confused with the sort of emissive rendering that <i>doesn't</i> affect light levels, spawning, or the rendering
-     * of nearby blocks.
+     * Allows fluidlogged blocks to propagate/emit fluid light level (instead of block). Not to be confused with the
+     * sort of emissive rendering that <i>doesn't</i> affect light levels, spawning, or the rendering of nearby blocks.
      */
     @Inject(method = "getLightEmission(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I",
             at = @At("HEAD"), cancellable = true)

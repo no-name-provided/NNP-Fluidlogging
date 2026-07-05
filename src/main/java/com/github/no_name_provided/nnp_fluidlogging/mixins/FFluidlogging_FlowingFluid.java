@@ -2,6 +2,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
+import com.github.no_name_provided.nnp_fluidlogging.common.network.FNetworkHelper;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -123,6 +124,8 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                 if (bState.hasProperty(WATERLOGGED)) {
                     if (bState.getValue(WATERLOGGED)) {
                         level.setBlock(pos, bState.setValue(WATERLOGGED, Boolean.FALSE), 3);
+                        // Update cached light value
+                        FNetworkHelper.clearLightAtPos(pos, level);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
                     chunk.getData(FAttachments.FLUID_STATES).remove(pos);
