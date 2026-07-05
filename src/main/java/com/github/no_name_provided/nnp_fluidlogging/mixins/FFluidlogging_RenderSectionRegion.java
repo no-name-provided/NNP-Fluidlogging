@@ -38,8 +38,8 @@ abstract class FFluidlogging_RenderSectionRegion implements BlockAndTintGetter {
     
     
     /**
-     * Does most of the heavy lifting of making visual fluidstate checks prefer our attachment over the cached, hardcoded
-     * blockstate default.
+     * Does most of the heavy lifting of making visual fluidstate checks prefer our attachment over the cached,
+     * hardcoded blockstate default.
      * <p>
      * Heavily borrows from vanilla.
      * </p>

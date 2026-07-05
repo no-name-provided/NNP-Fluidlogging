@@ -203,6 +203,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
             states.remove(iPos);
+            // Doesn't seem to be needed? Marking unsaved downstream seems to cover it
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
@@ -213,6 +214,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
         } else {
             states.remove(iPos);
+            // Doesn't seem to be needed? Marking unsaved downstream seems to cover it
 //            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
