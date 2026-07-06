@@ -4,7 +4,6 @@
   "package": "com.github.no_name_provided.nnp_fluidlogging.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "FFluidlogging_BaseRailBlock",
     "FFluidlogging_BlockBehavior",
     "FFluidlogging_FlowingFluid",
     "FFluidlogging_IBlockExtension",
@@ -12,9 +11,7 @@
     "FFluidlogging_LevelChunk",
     "FFluidlogging_LiquidBlock",
     "FFluidlogging_ServerLevel",
-    "FFluidlogging_SimpleWaterloggedBlock",
-    "FFluidlogging_SlabBlock",
-    "FFluidlogging_StairBlock"
+    "FFluidlogging_SimpleWaterloggedBlock"
   ],
   "client": [
     "FFluidlogging_LiquidBlockRenderer",
