@@ -20,9 +20,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 
@@ -35,15 +33,16 @@ abstract class FFluidlogging_LiquidBlock extends Block implements BucketPickup {
     }
     
     /**
-     * Probably not be necessary, or even counterproductive, since LiquidBlock can't be fluidlogged. Attempt to fix
-     * fluid interactions.
+     * Probably not necessary, or even counterproductive, since LiquidBlock can't be fluidlogged. Attempt to fix fluid
+     * interactions.
+     * <p>
+     * Wrapping operation and ignoring original so this mixin can be "overridden" by other modders. We have no use for
+     * the original return value.
+     * </p>
      */
-    @Inject(method = "randomTick(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V",
-            at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource randomSource, CallbackInfo ci) {
-        level.getFluidState(pos).randomTick(level, pos, randomSource);
-        
-        ci.cancel();
+    @WrapMethod(method = "randomTick(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V")
+    private void nnp_f_fluidlogging_randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, Operation<Void> original) {
+        level.getFluidState(pos).randomTick(level, pos, random);
     }
     
     /**
