@@ -7,8 +7,11 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A map from BlockPos to FluidState. Not prepopulated - a position without a fluidlogged block is a missing entry. Not
@@ -17,7 +20,7 @@ import java.util.HashMap;
  * This is stored in a record because it will be used for attachments, and those must be "immutable".
  * </p>
  */
-public record FluidStates(HashMap<BlockPos, FluidState> map) {
+public record FluidStates(HashMap<BlockPos, FluidState> map, HashMap<BlockPos, FluidState> unsyncedUpdates) {
     
     public static Codec<FluidStates> CODEC = RecordCodecBuilder.create(inst ->
             inst.group(
@@ -30,9 +33,56 @@ public record FluidStates(HashMap<BlockPos, FluidState> map) {
                                     // Workaround for overzealous type validation; should probably find a more efficient solution
                             ).xmap(HashMap::new, HashMap::new)
                             .fieldOf("map").forGetter(FluidStates::map)
-            ).apply(inst, FluidStates::new)
+            ).apply(inst, instance -> new FluidStates(instance, new HashMap<>()))
     );
     
     public static StreamCodec<RegistryFriendlyByteBuf, FluidStates> STREAM_CODEC =
             ByteBufCodecs.fromCodecWithRegistries(CODEC);
+    
+    /**
+     * Wrapper for Map#put that updates our map of unsynced updates.
+     *
+     * @param pos   The position with an updated FluidState.
+     * @param state The old FluidState at that position (or null, if there was none).
+     * @return The new FluidState
+     */
+    @SuppressWarnings("UnusedReturnValue") // matches signature of wrapped method
+    public @Nullable FluidState put(BlockPos pos, FluidState state) {
+        map().put(pos, state);
+        return unsyncedUpdates().put(pos, state);
+    }
+    
+    /**
+     * Wrapper for Map#put that updates our map of unsynced updates.
+     *
+     * @param changedEntries Map of entries that have been changed.
+     */
+    public void putAll(Map<BlockPos, FluidState> changedEntries) {
+        map().putAll(changedEntries);
+        unsyncedUpdates().putAll(changedEntries);
+    }
+    
+    /**
+     * Wrapper for internal map method of same name.
+     */
+    public @Nullable FluidState get(BlockPos pos) {
+        return map().get(pos);
+    }
+    
+    /**
+     * Wrapper for internal map method of same name.
+     */
+    public FluidState getOrDefault(BlockPos pos, FluidState defaultState) {
+        return map().getOrDefault(pos, defaultState);
+    }
+    
+    /**
+     * Wrapper for internal map method of same name. Adds empty entry in update map.
+     *
+     * @return The value that was removed, or null if not present.
+     */
+    public @Nullable FluidState remove(BlockPos pos) {
+        unsyncedUpdates().put(pos, Fluids.EMPTY.defaultFluidState());
+        return map().remove(pos);
+    }
 }

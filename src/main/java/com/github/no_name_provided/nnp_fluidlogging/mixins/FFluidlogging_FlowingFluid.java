@@ -151,7 +151,7 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                         level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).map().remove(pos);
+                    chunk.getData(FAttachments.FLUID_STATES).remove(pos);
                     chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.setUnsaved(true);
                 } else {
@@ -165,7 +165,7 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                         level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, state);
+                    chunk.getData(FAttachments.FLUID_STATES).put(pos, state);
                     chunk.syncData(FAttachments.FLUID_STATES);
                     chunk.setUnsaved(true);
                 } else {

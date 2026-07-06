@@ -28,7 +28,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
@@ -84,7 +83,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         // Ensure we don't accidentally pass a MutableBlockPos to a buffer, since they violate the Liskov Substitution Principle
         BlockPos iPos = pos.immutable();
         ChunkAccess chunk = level.getChunk(iPos);
-        Map<BlockPos, FluidState> fluidStates = chunk.getData(FLUID_STATES).map();
+        FluidStates fluidStates = chunk.getData(FLUID_STATES);
         FluidState oldFluidState = fluidStates.getOrDefault(iPos, state.getFluidState());
         boolean wasLogged = state.getValue(WATERLOGGED);
         // Handle lighting
@@ -162,7 +161,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         AuxiliaryLightManager lManager = level.getAuxLightManager(iPos);
         boolean lManagerExists = lManager != null;
         // For vanilla support, we default to the blockstate based waterlogging check
-        FluidState fluidState = states.map().getOrDefault(iPos, chunk.getFluidState(iPos));
+        FluidState fluidState = states.getOrDefault(iPos, chunk.getFluidState(iPos));
         
         // Vanilla default for waterlogged blocks. For consistency with worldgenned waterlogged blocks, water is _not_
         // stored in our data structure. Instead, it's represented by a waterlogged=true block without a corresponding
@@ -173,7 +172,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.cancel();
             // Only matches source blocks (flowing blocks are a different class)
         } else if (fluidState.is(Fluids.LAVA)) {
-            states.map().remove(iPos);
+            states.remove(iPos);
             chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
@@ -183,7 +182,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Lava has a weird, limited type implementation, so we don't trust it
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
-            states.map().remove(iPos);
+            states.remove(iPos);
             chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
@@ -193,7 +192,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // TODO: test with partial fluid implementations (no flowing, bucket, etc.)
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
         } else {
-            states.map().remove(iPos);
+            states.remove(iPos);
             chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);

@@ -38,6 +38,6 @@ abstract class FFluidlogging_RenderChunkRegion implements BlockAndTintGetter {
             at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getFluidState(BlockPos pos, CallbackInfoReturnable<FluidState> cir) {
         RenderChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
-        cir.setReturnValue(chunk.wrapped.getData(FLUID_STATES).map().getOrDefault(pos, chunk.getBlockState(pos).getFluidState()));
+        cir.setReturnValue(chunk.wrapped.getData(FLUID_STATES).getOrDefault(pos, chunk.getBlockState(pos).getFluidState()));
     }
 }

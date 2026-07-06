@@ -60,7 +60,7 @@ abstract class FFluidlogging_BlockBehavior {
                     ChunkAccess chunk = level.getChunk(pos);
                     // We don't need to avoid #getFluidState for liquid blocks.
                     // Since they can't be logged, it's always correct
-                    chunk.getData(FAttachments.FLUID_STATES).map().put(pos, oldState.getFluidState());
+                    chunk.getData(FAttachments.FLUID_STATES).put(pos, oldState.getFluidState());
                     if (!level.isClientSide()) {
                         chunk.syncData(FAttachments.FLUID_STATES);
                     }
@@ -99,7 +99,7 @@ abstract class FFluidlogging_BlockBehavior {
             ChunkAccess chunk = level.getChunk(pos);
             if (!level.isClientSide()) {
                 FluidStates states = chunk.getData(FAttachments.FLUID_STATES);
-                states.map().remove(pos);
+                states.remove(pos);
                 chunk.syncData(FAttachments.FLUID_STATES);
             }
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
@@ -145,7 +145,7 @@ abstract class FFluidlogging_BlockBehavior {
         if (!newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             ChunkAccess chunk = level.getChunk(pos);
             // This is fine, since we shouldn't have null values in this map
-            if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).map().remove(pos) != null) {
+            if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).remove(pos) != null) {
                 chunk.syncData(FAttachments.FLUID_STATES);
                 chunk.setUnsaved(true);
             }
