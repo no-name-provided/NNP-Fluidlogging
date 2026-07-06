@@ -137,6 +137,10 @@ abstract class FFluidlogging_LiquidBlockRenderer {
                 
                 return level.getFluidState(pos);
             }
+            
+            // We can't assume this is empty, as it could be a LiquidBlockContainer that doesn't
+            // implement SimpleWaterloggedBlock, like KelpBlock.
+            return state.getFluidState();
         }
         
         return Fluids.EMPTY.defaultFluidState();
