@@ -2,6 +2,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
+import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import com.github.no_name_provided.nnp_fluidlogging.common.wrappers.ClientClassWrappers;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -116,10 +117,16 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 if (!level.isClientSide()) {
                     chunk.syncData(FLUID_STATES);
                 }
-                chunk.setUnsaved(true);
+                int lightLevel = fluidState.getFluidType().getLightLevel(fluidState, level, pos);
                 if (lManagerExists) {
-                    lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, pos));
+                    lManager.setLightAt(iPos, lightLevel);
                 }
+                if (level instanceof ServerLevel sLevel) {
+                    sLevel.players().forEach(player ->
+                            player.connection.send(new AuxLightManagerUpdatePayload(lightLevel, pos.immutable().asLong()))
+                    );
+                }
+                chunk.setUnsaved(true);
             }
             // If these run on the client, they'll trigger before the attachment syncs
             level.setBlock(iPos, state.setValue(WATERLOGGED, true), Block.UPDATE_ALL);

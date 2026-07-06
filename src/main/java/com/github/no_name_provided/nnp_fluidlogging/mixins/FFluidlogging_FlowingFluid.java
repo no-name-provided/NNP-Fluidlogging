@@ -1,6 +1,7 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
+import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.shorts.Short2BooleanMap;
@@ -9,6 +10,7 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -19,6 +21,7 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -36,9 +39,9 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
      * Lazy implementation. May not be necessary.
      */
     @Inject(method = "getSpread(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Ljava/util/Map;",
-    at = @At("HEAD"), cancellable = true)
+            at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getSpread(Level level, BlockPos pos, BlockState state, CallbackInfoReturnable<Map<Direction, FluidState>> cir) {
-        FlowingFluid flowingFluid = (FlowingFluid)(Object)this;
+        FlowingFluid flowingFluid = (FlowingFluid) (Object) this;
         int i = 1000;
         Map<Direction, FluidState> map = Maps.newEnumMap(Direction.class);
         Short2ObjectMap<Pair<BlockState, FluidState>> short2objectmap = new Short2ObjectOpenHashMap<>();
@@ -86,9 +89,9 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
      * Lazy hack of a mixin.
      */
     @Inject(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
-    at = @At("HEAD"), cancellable = true)
+            at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_getNewLiquid(Level level, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> cir) {
-        FlowingFluid flowingFluid = ((FlowingFluid)(Object)this);
+        FlowingFluid flowingFluid = ((FlowingFluid) (Object) this);
         int i = 0;
         int j = 0;
         
@@ -136,9 +139,9 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
     }
     
     @Inject(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
-    at = @At("HEAD"), cancellable = true)
+            at = @At("HEAD"), cancellable = true)
     private void nnp_f_fluidlogging_tick(Level level, BlockPos pos, FluidState state, CallbackInfo ci) {
-        FlowingFluid thisFluid = ((FlowingFluid)(Object)this);
+        FlowingFluid thisFluid = ((FlowingFluid) (Object) this);
         BlockState blockState = level.getBlockState(pos);
         if (!state.isSource()) {
             FluidState newFluidState = thisFluid.getNewLiquid(level, pos, level.getBlockState(pos));
@@ -151,8 +154,16 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                         level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
                     }
                     ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).remove(pos);
+                    chunk.getData(FAttachments.FLUID_STATES).remove(pos.immutable());
                     chunk.syncData(FAttachments.FLUID_STATES);
+                    if (level.getAuxLightManager(pos.immutable()) instanceof AuxiliaryLightManager lManager) {
+                        lManager.removeLightAt(pos.immutable());
+                    }
+                    if (level instanceof ServerLevel sLevel) {
+                        sLevel.players().forEach(player ->
+                                player.connection.send(new AuxLightManagerUpdatePayload(0, pos.immutable().asLong()))
+                        );
+                    }
                     chunk.setUnsaved(true);
                 } else {
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
