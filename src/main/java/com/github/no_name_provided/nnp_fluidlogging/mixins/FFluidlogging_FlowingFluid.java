@@ -1,6 +1,7 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
+import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
@@ -30,6 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
 
+import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
 import static net.minecraft.world.level.material.FlowingFluid.getCacheKey;
 
 @Mixin(FlowingFluid.class)
@@ -146,6 +148,20 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         if (!state.isSource()) {
             FluidState newFluidState = thisFluid.getNewLiquid(level, pos, level.getBlockState(pos));
             int i = thisFluid.getSpreadDelay(level, pos, state, newFluidState);
+            
+            //-----------------------------------
+            // Respect our level limits - consider refactoring to use some kind of unified fluid placement helper
+            @SuppressWarnings("deprecation") // Probably more efficient than a registry lookup
+            BlockStateFluidLevelLimits levelLimits = blockState.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
+            if (levelLimits != null && newFluidState.getAmount() < levelLimits.getMinLevel(blockState, newFluidState.getFluidType())) {
+                
+                newFluidState = Fluids.EMPTY.defaultFluidState();
+            } else if (levelLimits != null && newFluidState.getAmount() > levelLimits.getMaxLevel(blockState, newFluidState.getFluidType())) {
+                // Makes sure the level isn't too high
+                newFluidState = newFluidState.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(blockState, newFluidState.getFluidType()));
+            }
+            //-------------------------------------
+            
             if (newFluidState.isEmpty()) {
                 // Make sure we use (and update) our data structure
                 state = newFluidState;

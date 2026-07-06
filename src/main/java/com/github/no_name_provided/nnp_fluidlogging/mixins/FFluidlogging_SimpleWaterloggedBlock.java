@@ -2,6 +2,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
+import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import com.github.no_name_provided.nnp_fluidlogging.common.wrappers.ClientClassWrappers;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
@@ -18,8 +19,10 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -32,6 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Optional;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
+import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
 /**
@@ -54,7 +58,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             isFluidBlacklisted = ServerConfig.blacklistedFluids.contains(key.get().location().toString());
         }
         boolean isBlockBlacklisted = ServerConfig.blacklistedBlocks.contains(state.getBlockHolder().getRegisteredName());
-        
         // Filter out fluids without buckets, to avoid an entire category of potential errors.
         // Default bucket is Items.AIR. Might also need to null check
         return !(isFluidBlacklisted || isBlockBlacklisted) && fluid.getBucket() != Items.AIR;
@@ -77,9 +80,25 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Lies! This is secretly mutable, and violates the substitution principle
             BlockPos pos,
             BlockState state,
-            FluidState fluidState,
+            FluidState nominalFluidState,
             Operation<Boolean> original
     ) {
+        FluidState fluidState = nominalFluidState;
+        // Nope out and return early if the fluid level is too low for the block
+        @SuppressWarnings("deprecation") // probably more efficient than a registry lookup
+        BlockStateFluidLevelLimits levelLimits = state.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
+        if (levelLimits != null && nominalFluidState.getAmount() < levelLimits.getMinLevel(state, nominalFluidState.getFluidType())) {
+            
+            return false;
+        } else if (levelLimits != null && nominalFluidState.getAmount() > levelLimits.getMaxLevel(state, nominalFluidState.getFluidType())) {
+            // Makes sure the level isn't too high - only supports flowing fluids
+            if (nominalFluidState.isSource() && nominalFluidState.getType() instanceof FlowingFluid flowingFluid) {
+                fluidState = flowingFluid.getFlowing(levelLimits.getMaxLevel(state, nominalFluidState.getFluidType()), false);
+            } else {
+                fluidState = nominalFluidState.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(state, nominalFluidState.getFluidType()));
+            }
+        }
+        
         // Get current states
         // Ensure we don't accidentally pass a MutableBlockPos to a buffer, since they violate the Liskov Substitution Principle
         BlockPos iPos = pos.immutable();

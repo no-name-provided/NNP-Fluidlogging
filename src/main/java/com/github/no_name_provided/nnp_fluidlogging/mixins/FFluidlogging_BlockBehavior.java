@@ -3,6 +3,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
+import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,12 +17,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
 
 /**
  * Important mixins - clear fluid from data structure when logged blocks are broken.
@@ -53,8 +58,20 @@ abstract class FFluidlogging_BlockBehavior {
             at = @At("HEAD"))
     private void nnp_f_fluidlogging_onPlace(BlockState newState, Level level, BlockPos pos, BlockState oldState, boolean flag, CallbackInfo ci) {
         if (newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+            
+            // Respect fluid level limits - only works for flowing fluids
             //noinspection deprecation - #liquid is widely used in vanilla
             if (oldState.liquid() && newState.getBlock() instanceof SimpleWaterloggedBlock simpleWaterloggedBlock && simpleWaterloggedBlock.canPlaceLiquid(null, level, pos, newState, oldState.getFluidState().getType())) {
+                if (oldState.getFluidState().getType() instanceof FlowingFluid flowingFluid) {
+                    @SuppressWarnings("deprecation") //probably more efficient than a registry lookup
+                    BlockStateFluidLevelLimits levelLimits = oldState.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
+                    if (levelLimits != null && oldState.getFluidState().getAmount() < levelLimits.getMinLevel(newState, oldState.getFluidState().getFluidType())) {
+                        oldState = Fluids.EMPTY.defaultFluidState().createLegacyBlock();
+                    } else if (levelLimits != null && oldState.getFluidState().getAmount() > levelLimits.getMaxLevel(newState, oldState.getFluidState().getFluidType())) {
+                        oldState = flowingFluid.getFlowing(levelLimits.getMaxLevel(oldState, oldState.getFluidState().getFluidType()), false).createLegacyBlock();
+                    }
+                }
+                
                 // Filter out flowing liquids... unless we're going to try to handle them
                 if (oldState.getFluidState().isSource() || ServerConfig.flowingFluidsCanLog) {
                     ChunkAccess chunk = level.getChunk(pos);
@@ -85,9 +102,10 @@ abstract class FFluidlogging_BlockBehavior {
                         }
                     } else if (level instanceof ServerLevel sLevel) {
                         // Send our custom light level update packet
+                        BlockState finalOldState = oldState;
                         sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
                                 player.connection.send(new AuxLightManagerUpdatePayload(
-                                        oldState.getFluidState().getFluidType().getLightLevel(oldState.getFluidState(), level, pos),
+                                        finalOldState.getFluidState().getFluidType().getLightLevel(finalOldState.getFluidState(), level, pos),
                                         pos.asLong()))
                         );
                     }
