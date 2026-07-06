@@ -1,5 +1,6 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.block.LiquidBlockRenderer;
 import net.minecraft.core.BlockPos;
@@ -16,10 +17,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * These mixins cause adjacent fluid logged blocks are treated as sources for (already) flowing fluids. They also stop
@@ -31,11 +30,19 @@ abstract class FFluidlogging_LiquidBlockRenderer {
     @Shadow @Final
     protected abstract float getHeight(BlockAndTintGetter level, Fluid fluid, BlockPos pos, BlockState blockState, FluidState fluidState);
     
-    @Inject(method = "shouldRenderFace(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;)Z",
-            at = @At("HEAD"), cancellable = true)
-    private static void nnp_f_fluidlogging_shouldRenderFace(BlockAndTintGetter level, BlockPos pos, FluidState fluidState, BlockState selfState, Direction direction, BlockState otherState, CallbackInfoReturnable<Boolean> cir) {
+    /**
+     * Allows modded, transparent, logged fluids to hide both their own back face and the faces of adjacent fluids of
+     * the same type (preventing an annoying chessboard pattern of incorrectly rendered faces).
+     * <p>
+     * We ignore the original return value here because we actually want a slightly weaker, but otherwise redundant,
+     * check.
+     * </p>
+     */
+    @ModifyReturnValue(method = "shouldRenderFace(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;)Z",
+            at = @At("RETURN"))
+    private static boolean nnp_f_fluidlogging_shouldRenderFace(boolean original, BlockAndTintGetter level, BlockPos pos, FluidState fluidState, BlockState selfState, Direction direction, BlockState otherState) {
         
-        cir.setReturnValue(!LiquidBlockRenderer.isFaceOccludedBySelf(level, pos, selfState, direction) && !fluidState.getType().isSame(level.getFluidState(pos.relative(direction)).getType()));
+        return !LiquidBlockRenderer.isFaceOccludedBySelf(level, pos, selfState, direction) && !fluidState.getType().isSame(level.getFluidState(pos.relative(direction)).getType());
     }
     
     @ModifyVariable(method = "tesselate(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)V",
@@ -94,12 +101,12 @@ abstract class FFluidlogging_LiquidBlockRenderer {
     
     /**
      * This is actually a mixin for a wrapper for the "real" getHeight function. We make it pass the correct FluidState
-     * as the last parameter to the wrapped call. Fixes glitch where fluid blocks diagonal to fluidlogged blocks
-     * treat those blocks as having the incorrect fluidstate, and render with one corner too low (creating a
-     * visual gap in the LiquidBlocks rendered).
+     * as the last parameter to the wrapped call. Fixes glitch where fluid blocks diagonal to fluidlogged blocks treat
+     * those blocks as having the incorrect fluidstate, and render with one corner too low (creating a visual gap in the
+     * LiquidBlocks rendered).
      */
     @Redirect(method = "getHeight(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/core/BlockPos;)F",
-    at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getHeight(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)F"))
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getHeight(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)F"))
     private float nnp_f_fluidlogging_getHeight_fixReturn(LiquidBlockRenderer instance, BlockAndTintGetter level, Fluid fluid, BlockPos pos, BlockState blockState, FluidState fluidState) {
         
         return getHeight(level, fluid, pos, blockState, level.getFluidState(pos));
