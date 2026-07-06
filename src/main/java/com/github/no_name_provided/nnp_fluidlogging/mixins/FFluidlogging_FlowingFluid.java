@@ -3,18 +3,15 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
-import com.google.common.collect.Maps;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.shorts.Short2BooleanMap;
-import it.unimi.dsi.fastutil.shorts.Short2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectFunction;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -25,186 +22,124 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Map;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
-import static net.minecraft.world.level.material.FlowingFluid.getCacheKey;
 
 @Mixin(FlowingFluid.class)
 abstract class FFluidlogging_FlowingFluid extends Fluid {
     
-    /**
-     * Lazy implementation. May not be necessary.
-     */
-    @Inject(method = "getSpread(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Ljava/util/Map;",
-            at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_getSpread(Level level, BlockPos pos, BlockState state, CallbackInfoReturnable<Map<Direction, FluidState>> cir) {
-        FlowingFluid flowingFluid = (FlowingFluid) (Object) this;
-        int i = 1000;
-        Map<Direction, FluidState> map = Maps.newEnumMap(Direction.class);
-        Short2ObjectMap<Pair<BlockState, FluidState>> short2objectmap = new Short2ObjectOpenHashMap<>();
-        Short2BooleanMap short2booleanmap = new Short2BooleanOpenHashMap();
+    //region #getSpread patches ---------------------------------------------------------------------
+    
+    @ModifyArg(method = "getSpread(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Ljava/util/Map;",
+            at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/shorts/Short2ObjectMap;computeIfAbsent(SLit/unimi/dsi/fastutil/shorts/Short2ObjectFunction;)Ljava/lang/Object;"),
+            index = 1)
+    private Short2ObjectFunction<? extends Pair<BlockState, FluidState>> nnp_f_fluidlogging_getSpread_fixStateMap(Short2ObjectFunction<? extends Pair<BlockState, FluidState>> mappingFunction, @Local(name = "level") Level level, @Local(name = "blockpos") BlockPos blockpos) {
         
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos blockpos = pos.relative(direction);
-            short short1 = getCacheKey(pos, blockpos);
-            Pair<BlockState, FluidState> pair = short2objectmap.computeIfAbsent(short1, p_284929_ -> {
-                BlockState blockstate1 = level.getBlockState(blockpos);
-                return Pair.of(blockstate1, level.getFluidState(blockpos));
-            });
-            BlockState blockstate = pair.getFirst();
-            FluidState fluidstate = pair.getSecond();
-            FluidState fluidstate1 = flowingFluid.getNewLiquid(level, blockpos, blockstate);
-            if (flowingFluid.canPassThrough(level, fluidstate1.getType(), pos, state, direction, blockpos, blockstate, fluidstate)) {
-                BlockPos blockpos1 = blockpos.below();
-                boolean flag = short2booleanmap.computeIfAbsent(short1, p_255612_ -> {
-                    BlockState blockstate1 = level.getBlockState(blockpos1);
-                    return flowingFluid.isWaterHole(level, flowingFluid.getFlowing(), blockpos, blockstate, blockpos1, blockstate1);
-                });
-                int j;
-                if (flag) {
-                    j = 0;
-                } else {
-                    j = flowingFluid.getSlopeDistance(level, blockpos, 1, direction.getOpposite(), blockstate, pos, short2objectmap, short2booleanmap);
-                }
-                
-                if (j < i) {
-                    map.clear();
-                }
-                
-                if (j <= i) {
-                    map.put(direction, fluidstate1);
-                    i = j;
-                }
-            }
-        }
-        
-        cir.setReturnValue(map);
+        return myShort -> Pair.of(level.getBlockState(blockpos), level.getFluidState(blockpos));
     }
     
+    //endregion ---------------------------------------------------------------------
     
-    /**
-     * Lazy hack of a mixin.
-     */
-    @Inject(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
-            at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_getNewLiquid(Level level, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> cir) {
-        FlowingFluid flowingFluid = ((FlowingFluid) (Object) this);
-        int i = 0;
-        int j = 0;
+    //region getNewLiquid patches ---------------------------------------------------------------------
+    
+    @ModifyVariable(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
+            at = @At(value = "STORE"), name = "fluidstate")
+    private FluidState nnp_f_fluidlogging_getNewLiquid_fixFluidState(FluidState fluidstate, Level level, @Local(name = "blockpos") BlockPos blockpos) {
         
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos blockpos = pos.relative(direction);
-            BlockState blockstate = level.getBlockState(blockpos);
-//            FluidState fluidstate = blockstate.getFluidState();
-            FluidState fluidstate = level.getFluidState(blockpos);
-            if (fluidstate.getType().isSame(flowingFluid) && flowingFluid.canPassThroughWall(direction, level, pos, state, blockpos, blockstate)) {
-                // Trick Neo event into thinking we're looking at a liquid block, so vanillaResult calculates the correct value
-                if (fluidstate.isSource() && net.neoforged.neoforge.event.EventHooks.canCreateFluidSource(level, blockpos, fluidstate.createLegacyBlock().trySetValue(BlockStateProperties.LEVEL, fluidstate.getAmount()))) {
-                    j++;
-                }
-                
-                i = Math.max(i, fluidstate.getAmount());
-            }
-        }
-        
-        if (j >= 2) {
-            BlockState blockstate1 = level.getBlockState(pos.below());
-            //FluidState fluidstate1 = blockstate1.getFluidState();
-            FluidState fluidstate1 = level.getFluidState(pos.below());
-            //noinspection deprecation - copied from vanilla
-            if (blockstate1.isSolid() || flowingFluid.isSourceBlockOfThisType(fluidstate1)) {
-                
-                cir.setReturnValue(flowingFluid.getSource(false));
-                return;
-            }
-        }
-        
-        BlockPos blockpos1 = pos.above();
-        BlockState blockstate2 = level.getBlockState(blockpos1);
-//        FluidState fluidstate2 = blockstate2.getFluidState();
-        FluidState fluidstate2 = level.getFluidState(blockpos1);
-        if (!fluidstate2.isEmpty()
-                && fluidstate2.getType().isSame(flowingFluid)
-                && flowingFluid.canPassThroughWall(Direction.UP, level, pos, state, blockpos1, blockstate2)) {
-            
-            cir.setReturnValue(flowingFluid.getFlowing(8, true));
-        } else {
-            int k = i - flowingFluid.getDropOff(level);
-            
-            cir.setReturnValue(k <= 0 ? Fluids.EMPTY.defaultFluidState() : flowingFluid.getFlowing(k, false));
-        }
+        return level.getFluidState(blockpos);
     }
     
-    @Inject(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
-            at = @At("HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_tick(Level level, BlockPos pos, FluidState state, CallbackInfo ci) {
-        FlowingFluid thisFluid = ((FlowingFluid) (Object) this);
+    /**
+     * Tricks the Neo event into thinking we're looking at a liquid block, so vanillaResult calculates the correct
+     * value.
+     */
+    @ModifyArg(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
+            at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/event/EventHooks;canCreateFluidSource(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"),
+            index = 2)
+    private BlockState nnp_f_fluidlogging_getNewLiquid_hackNeoEvent(BlockState state, @Local(name = "fluidstate") FluidState fluidstate) {
+        
+        return fluidstate.createLegacyBlock().trySetValue(BlockStateProperties.LEVEL, fluidstate.getAmount());
+    }
+    
+    @ModifyVariable(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
+            at = @At(value = "STORE"), name = "fluidstate1")
+    private FluidState nnp_f_fluidlogging_getNewLiquid_fixFluidState1(FluidState fluidstate, Level level, BlockPos pos) {
+        
+        return level.getFluidState(pos.below());
+    }
+    
+    @ModifyVariable(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
+            at = @At(value = "STORE"), name = "fluidstate2")
+    private FluidState nnp_f_fluidlogging_getNewLiquid_fixFluidState2(FluidState fluidstate, Level level, @Local(name = "blockpos1") BlockPos blockpos1) {
+        
+        return level.getFluidState(blockpos1);
+    }
+    
+    //endregion ---------------------------------------------------------------------
+    
+    //region #tick patches
+    
+    /**
+     * Respect our level limits - consider refactoring to use some kind of unified fluid placement helper
+     */
+    @ModifyVariable(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
+            at = @At(value = "STORE", target = "Lnet/minecraft/world/level/material/FlowingFluid;tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V"),
+            name = "fluidstate")
+    private FluidState nnp_f_fluidlogging_tick_injectLevelLimitChecks(FluidState fluidstate, Level level, BlockPos pos) {
         BlockState blockState = level.getBlockState(pos);
-        if (!state.isSource()) {
-            FluidState newFluidState = thisFluid.getNewLiquid(level, pos, level.getBlockState(pos));
-            int i = thisFluid.getSpreadDelay(level, pos, state, newFluidState);
-            
-            //-----------------------------------
-            // Respect our level limits - consider refactoring to use some kind of unified fluid placement helper
-            @SuppressWarnings("deprecation") // Probably more efficient than a registry lookup
-            BlockStateFluidLevelLimits levelLimits = blockState.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
-            if (levelLimits != null && newFluidState.getAmount() < levelLimits.getMinLevel(blockState, newFluidState.getFluidType())) {
-                
-                newFluidState = Fluids.EMPTY.defaultFluidState();
-            } else if (levelLimits != null && newFluidState.getAmount() > levelLimits.getMaxLevel(blockState, newFluidState.getFluidType())) {
-                // Makes sure the level isn't too high
-                newFluidState = newFluidState.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(blockState, newFluidState.getFluidType()));
-            }
-            //-------------------------------------
-            
-            if (newFluidState.isEmpty()) {
-                // Make sure we use (and update) our data structure
-                state = newFluidState;
-                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    if (blockState.getValue(BlockStateProperties.WATERLOGGED)) {
-                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), 3);
-                    }
-                    ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).remove(pos.immutable());
-                    chunk.syncData(FAttachments.FLUID_STATES);
-                    if (level.getAuxLightManager(pos.immutable()) instanceof AuxiliaryLightManager lManager) {
-                        lManager.removeLightAt(pos.immutable());
-                    }
-                    if (level instanceof ServerLevel sLevel) {
-                        sLevel.players().forEach(player ->
-                                player.connection.send(new AuxLightManagerUpdatePayload(0, pos.immutable().asLong()))
-                        );
-                    }
-                    chunk.setUnsaved(true);
-                } else {
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-                }
-            } else if (!newFluidState.equals(state)) {
-                // Make sure we use (and update) our data structure
-                state = newFluidState;
-                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    if (!blockState.getValue(BlockStateProperties.WATERLOGGED)) {
-                        level.setBlock(pos, blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE), Block.UPDATE_CLIENTS);
-                    }
-                    ChunkAccess chunk = level.getChunkAt(pos);
-                    chunk.getData(FAttachments.FLUID_STATES).put(pos, state);
-                    chunk.syncData(FAttachments.FLUID_STATES);
-                    chunk.setUnsaved(true);
-                } else {
-                    BlockState blockstate = newFluidState.createLegacyBlock();
-                    level.setBlock(pos, blockstate, Block.UPDATE_CLIENTS);
-                }
-                level.scheduleTick(pos, newFluidState.getType(), i);
-                level.updateNeighborsAt(pos, newFluidState.createLegacyBlock().getBlock());
-            }
+        @SuppressWarnings("deprecation") // Probably more efficient than a registry lookup
+        BlockStateFluidLevelLimits levelLimits = blockState.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
+        if (levelLimits != null && fluidstate.getAmount() < levelLimits.getMinLevel(blockState, fluidstate.getFluidType())) {
+            // If the level is too low, we prevent flow the same way vanilla does - by returning the empty fluid.
+            // Consider moving this into #getNewFluid, to augment the vanilla check
+            fluidstate = Fluids.EMPTY.defaultFluidState();
+        } else if (levelLimits != null && fluidstate.getAmount() > levelLimits.getMaxLevel(blockState, fluidstate.getFluidType())) {
+            // Makes sure the level isn't too high
+            fluidstate = fluidstate.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(blockState, fluidstate.getFluidType()));
         }
-        thisFluid.spread(level, pos, state);
         
-        ci.cancel();
+        return fluidstate;
     }
+    
+    /**
+     * We want to update our FluidStates and light levels whenever we change a BlockState, so we just wrap the relevant
+     * operation.
+     * <p>
+     * This also lets us suppress the vanilla block update, if we're interacting with a logged block (otherwise, they'd
+     * be replaced with the corresponding LiquidBlock).
+     * </p>
+     */
+    @WrapOperation(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))
+    private boolean nnp_f_fluidlogging_tick_updateDataStructureAndPreventBlockVoiding(Level level, BlockPos pos, BlockState newState, int flags, Operation<Boolean> original) {
+        boolean flag = false;
+        BlockState oldState = level.getBlockState(pos);
+        if (oldState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+            if (oldState.getValue(BlockStateProperties.WATERLOGGED)) {
+                flag = original.call(level, pos, oldState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), Block.UPDATE_ALL);
+            }
+            ChunkAccess chunk = level.getChunkAt(pos);
+            chunk.getData(FAttachments.FLUID_STATES).remove(pos.immutable());
+            chunk.syncData(FAttachments.FLUID_STATES);
+            if (level.getAuxLightManager(pos.immutable()) instanceof AuxiliaryLightManager lManager) {
+                lManager.removeLightAt(pos.immutable());
+            }
+            if (level instanceof ServerLevel sLevel) {
+                sLevel.players().forEach(player ->
+                        player.connection.send(new AuxLightManagerUpdatePayload(0, pos.immutable().asLong()))
+                );
+            }
+            chunk.setUnsaved(true);
+        } else {
+            flag = original.call(level, pos, newState, flags);
+        }
+        
+        // Not currently used, in vanilla or this mod.
+        // Currently returns whether we updated a BlockState, not whether we spread
+        return flag;
+    }
+    
+    //endregion
 }
