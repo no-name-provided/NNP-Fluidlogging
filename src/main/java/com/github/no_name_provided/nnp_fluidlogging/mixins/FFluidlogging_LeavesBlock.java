@@ -1,5 +1,6 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
@@ -32,22 +33,21 @@ abstract class FFluidlogging_LeavesBlock extends Block {
      * Fails to fix weird failure to update lights, but at least allows fluid logged leaves to block light? Might be
      * better without this.
      */
-    @Inject(method = "getLightBlock(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I",
-            at = @At(value = "HEAD"), cancellable = true)
-    private void nnp_f_fluidlogging_getLightBlock(BlockState state, BlockGetter getter, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
+    @ModifyReturnValue(method = "getLightBlock(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I",
+            at = @At("RETURN"))
+    private int nnp_f_fluidlogging_getLightBlock(int original, BlockState state, BlockGetter getter, BlockPos pos) {
         if (state.getValue(BlockStateProperties.WATERLOGGED)) {
-
-            cir.setReturnValue(super.getLightBlock(state, getter, pos));
-        } else {
-
-            cir.setReturnValue(1);
+        
+            return super.getLightBlock(state, getter, pos);
         }
+        
+        return original;
     }
     
     @Inject(method = "getFluidState(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
             at = @At("RETURN"), cancellable = true)
     private void nnp_f_fluidlogging_getFluidState(BlockState state, CallbackInfoReturnable<FluidState> cir) {
-        // The return value form this directly controls almost everything that depends on fluid contents
+        // The return value from this directly controls almost everything that depends on fluid contents
         // (including visuals and ticking). Unfortunately, it isn't called with positional context,
         // so we need to look upstream.
         
