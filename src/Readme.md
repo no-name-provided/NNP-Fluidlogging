@@ -1,8 +1,10 @@
 <H1>General Information</H1>
 This mod adds very general fluidlogging to Minecraft+NeoForge. As it is mixin based, it can be adapted for other
 mod loaders with relative ease. I will not be doing this. As the vanilla fluid system is seldom meaningfully updated,
-it should be easy to port this forward. I intend to do that, once this mod reaches beta status and I've addressed major
-bugs. I will not backport, as older versions have alternatives that are easily available, and claim to support general
+it should be easy to port this forward. I intend to do that, but wll only personally maintain one LTS version at a
+time (in
+addition to the master). I will not backport, as older versions have alternatives that are easily available, and claim
+to support general
 fluidlogging.
 
 I don't intend to push this mod past late beta or early release. I am providing it because I think it's unfortunate no
@@ -32,13 +34,17 @@ data approach and port this feature to Fabric.
 check (typically BlockAndTintGetter#getFluidState). 
 <ol>
 <li>This is most of the work, and almost exclusively 
-done with mixins. This is where the tedium comes in. This mod is mostly mixins that replace
-#getFluidState with #getFluidState(pos). If you find a bug, it's likely I skipped (or missed)
-one of these mixins.
+done with mixins. We can avoid the need for most of those mixins by not using vanilla's 
+BlockStateProperties.WATERLOGGED, which usually gates these calls, and mixing into superclasses.
+However, some fancy mixins are required for the various Fluid and rendering classes, particularly 
+to make flowing fluids log correctly.
 </li>
 </ol>
 </ol>
 That's basically all you need to do. We have a few mixins to SimpleWaterloggedBlock, FlowingFluid, etc. 
 to jailbreak hard-coded checks and update our data structure. We also special case vanilla water, 
-since it behaves a bit differently, and we currently bypass a lot of caching that we should probably 
+since it behaves a bit differently, have a few abuses of AuxiliaryLightManager to provide thread-safe 
+lighting updates, and we currently bypass a lot of caching that we should probably 
 reimplement, but that's it.
+
+The hardest part was resolving sync issues (and sorting out the rendering/fluid interaction mixins).
