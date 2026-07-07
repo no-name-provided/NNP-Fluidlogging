@@ -27,6 +27,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -48,7 +49,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
      * limitations, and makes a good hook for configurable white/blacklists.
      */
     @WrapMethod(method = "canPlaceLiquid(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/Fluid;)Z")
-    private boolean nnp_f_fluidlogging_canPlaceLiquid(Player player, BlockGetter getter, BlockPos pos, BlockState state, Fluid fluid, Operation<Boolean> original) {
+    private boolean nnp_f_fluidlogging_canPlaceLiquid(@Nullable Player player, BlockGetter getter, BlockPos pos, BlockState state, Fluid fluid, Operation<Boolean> original) {
         // Call this so any injected side effects can run, but ignore the return value because we don't care
         original.call(player, getter, pos, state, fluid);
         

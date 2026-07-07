@@ -36,7 +36,8 @@ public class ServerConfig {
                     );
     private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLISTED_BLOCKS =
             BUILDER.comment("Which blocks should be blacklisted? This isn't retroactive.",
-                            "Only applies to SimpleWaterLoggableBlock variants (stairs, slabs, etc.).")
+                            "Only applies to SimpleWaterLoggableBlock variants (stairs, slabs, etc.).",
+                            "Remember, flowing fluids and source blocks are blacklisted separately (they're distinct fluids as far as Minecraft is concerned).")
                     .defineListAllowEmpty(
                             "block_blacklist",
                             new ArrayList<>(),

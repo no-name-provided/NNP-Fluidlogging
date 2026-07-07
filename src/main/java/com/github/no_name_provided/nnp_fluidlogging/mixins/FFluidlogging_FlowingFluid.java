@@ -82,7 +82,7 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
     //region #tick patches
     
     /**
-     * Respect our level limits - consider refactoring to use some kind of unified fluid placement helper
+     * Respect our level limits - consider refactoring to use some kind of unified fluid placement helper.
      */
     @ModifyVariable(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V",
             at = @At(value = "STORE", target = "Lnet/minecraft/world/level/material/FlowingFluid;tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/FluidState;)V"),
