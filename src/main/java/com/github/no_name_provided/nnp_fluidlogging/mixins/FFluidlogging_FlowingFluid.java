@@ -32,10 +32,11 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
     
     //region #getSpread patches ---------------------------------------------------------------------
     
+    // Using "name=[NAME]" here causes an issue when using build artifacts in launcher - verified mixin grabs correct variable in dev and no crash in launcher
     @ModifyArg(method = "getSpread(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Ljava/util/Map;",
             at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/shorts/Short2ObjectMap;computeIfAbsent(SLit/unimi/dsi/fastutil/shorts/Short2ObjectFunction;)Ljava/lang/Object;"),
             index = 1)
-    private Short2ObjectFunction<? extends Pair<BlockState, FluidState>> nnp_f_fluidlogging_getSpread_fixStateMap(Short2ObjectFunction<? extends Pair<BlockState, FluidState>> mappingFunction, @Local(name = "level") Level level, @Local(name = "blockpos") BlockPos blockpos) {
+    private Short2ObjectFunction<? extends Pair<BlockState, FluidState>> nnp_f_fluidlogging_getSpread_fixStateMap(Short2ObjectFunction<? extends Pair<BlockState, FluidState>> mappingFunction, @Local(argsOnly = true) Level level, @Local(ordinal = 1) BlockPos blockpos) {
         
         return myShort -> Pair.of(level.getBlockState(blockpos), level.getFluidState(blockpos));
     }
