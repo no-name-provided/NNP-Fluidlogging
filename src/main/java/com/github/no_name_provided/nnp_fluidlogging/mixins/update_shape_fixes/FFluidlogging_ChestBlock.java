@@ -1,10 +1,8 @@
-package com.github.no_name_provided.nnp_fluidlogging.mixins;
+package com.github.no_name_provided.nnp_fluidlogging.mixins.update_shape_fixes;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
-import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,20 +11,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 
-/**
- * Important mixin - this is what stops water from flowing when a slab is logged with a different fluid. It does not
- * currently cause the correct fluid to flow, or stop adjacent fluids from being cooled.
- */
-@Mixin(SlabBlock.class)
-abstract class FFluidlogging_SlabBlock extends Block implements SimpleWaterloggedBlock {
-    public FFluidlogging_SlabBlock(Properties props) {
-        super(props);
-    }
-    
-    
+@Mixin(ChestBlock.class)
+public class FFluidlogging_ChestBlock {
     
     /**
-     * Force updateShape to trigger a tick with a fluid from our attachment (when present).
+     * Force #updateShape to trigger a tick with a fluid from our attachment (when present).
      *
      * @param level The level the block is in.
      * @param pos The position the block is in.

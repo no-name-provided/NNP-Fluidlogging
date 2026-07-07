@@ -1,8 +1,8 @@
-package com.github.no_name_provided.nnp_fluidlogging.mixins;
+package com.github.no_name_provided.nnp_fluidlogging.mixins.update_shape_fixes;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.BaseRailBlock;
+import net.minecraft.world.level.block.LanternBlock;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,10 +11,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 
-@Mixin(BaseRailBlock.class)
-abstract class FFluidlogging_BaseRailBlock {
+@Mixin(LanternBlock.class)
+public class FFluidlogging_LanternBlock {
+    
     /**
-     * Force updateShape to trigger a tick with a fluid from our attachment (when present).
+     * Force #updateShape to trigger a tick with a fluid from our attachment (when present).
      *
      * @param level The level the block is in.
      * @param pos The position the block is in.

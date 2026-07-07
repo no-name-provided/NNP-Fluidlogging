@@ -1,4 +1,4 @@
-package com.github.no_name_provided.nnp_fluidlogging.mixins;
+package com.github.no_name_provided.nnp_fluidlogging.mixins.update_shape_fixes;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
