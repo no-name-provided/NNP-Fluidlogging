@@ -16,12 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 @ParametersAreNonnullByDefault
 public class FDataMapProvider extends DataMapProvider {
-    /**
-     * Create a new provider.
-     *
-     * @param packOutput     the output location
-     * @param lookupProvider a {@linkplain CompletableFuture} supplying the registries
-     */
+    
     public FDataMapProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider) {
         super(packOutput, lookupProvider);
     }
@@ -31,6 +26,8 @@ public class FDataMapProvider extends DataMapProvider {
      */
     @Override
     protected void gather(HolderLookup.Provider provider) {
+        //region Populate fluid level limits -----------------------------------------------------
+        
         Builder<BlockStateFluidLevelLimits, Block> builder = builder(FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS);
         BuiltInRegistries.BLOCK.asHolderIdMap().forEach(block -> {
             if (block.value() instanceof StairBlock) {
@@ -53,5 +50,7 @@ public class FDataMapProvider extends DataMapProvider {
                 );
             }
         });
+        
+        //endregion -----------------------------------------------------
     }
 }

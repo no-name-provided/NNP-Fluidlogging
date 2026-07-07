@@ -18,6 +18,9 @@ import java.util.List;
 
 import static com.github.no_name_provided.nnp_fluidlogging.NNP_Fluidlogging.MODID;
 
+/**
+ * Define our server config, which is synced to (and overwrites) the corresponding config on clients when they join.
+ */
 @EventBusSubscriber(modid = MODID)
 public class ServerConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
@@ -45,7 +48,7 @@ public class ServerConfig {
                             "Significant performance penalty.")
                     .define("consider_fluid_light", true);
     private static final ModConfigSpec.BooleanValue FLOWING_FLUIDS_CAN_LOG =
-            BUILDER.comment("Can partial fluid blocks waterlog (WIP)")
+            BUILDER.comment("Can partial fluid blocks waterlog")
                     .define("flowing_fluids_log", false);
     private static final ModConfigSpec.BooleanValue FORCE_CHUNK_UPDATES =
             BUILDER.comment("Should we force chunk updates (resolves sync issues, but may cause stability problems)")
@@ -70,7 +73,10 @@ public class ServerConfig {
             // Returns null on failure
             ResourceLocation loc = ResourceLocation.tryParse(fluidString);
             
-            return loc != null && BuiltInRegistries.FLUID.containsKey(loc);
+            return loc != null && BuiltInRegistries.FLUID.containsKey(loc) &&
+                    // We can't really blacklist water, since we aren't fiddling with worldgen and we special case vanilla waterlogging in so many spots
+                    !fluidString.equals("minecraft:water") &&
+                    !fluidString.equals("minecraft:flowing_water");
         }
         
         return false;
