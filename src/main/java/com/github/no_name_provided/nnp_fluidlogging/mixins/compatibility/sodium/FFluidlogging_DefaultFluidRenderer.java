@@ -15,6 +15,7 @@ public class FFluidlogging_DefaultFluidRenderer {
     at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;"))
     private FluidState nnp_f_fluidlogging_fixFluidState(FluidState fluidState, BlockAndTintGetter world, Fluid fluid, BlockPos blockPos) {
         
+        // We mix into this to make it check our attachment
         return world.getFluidState(blockPos);
     }
 }

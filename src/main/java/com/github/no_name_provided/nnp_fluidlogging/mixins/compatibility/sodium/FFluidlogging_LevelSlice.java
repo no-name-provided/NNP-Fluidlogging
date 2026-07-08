@@ -19,6 +19,8 @@ public class FFluidlogging_LevelSlice {
     @WrapMethod(method = "getFluidState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;")
     private FluidState getFluidState(BlockPos pos, Operation<FluidState> original) {
         ChunkPos chunkPos = new ChunkPos(pos);
+        // We need to make sure chunks are loaded, since Sodium apparently renders some
+        // without retreiving them from the server
         if (level.hasChunk(chunkPos.x, chunkPos.z)) {
             
             return level.getFluidState(pos);
