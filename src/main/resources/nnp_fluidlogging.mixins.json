@@ -1,5 +1,6 @@
 {
   "required": true,
+  "plugin": "com.github.no_name_provided.nnp_fluidlogging.mixins.NNPFluidloggingMixinPlugin",
   "minVersion": "0.8",
   "package": "com.github.no_name_provided.nnp_fluidlogging.mixins",
   "compatibilityLevel": "JAVA_21",
@@ -12,6 +13,9 @@
     "FFluidlogging_LiquidBlock",
     "FFluidlogging_ServerLevel",
     "FFluidlogging_SimpleWaterloggedBlock",
+    "compatibility.sodium.FFluidlogging_ChunkBuilderMeshingTask",
+    "compatibility.sodium.FFluidlogging_DefaultFluidRenderer",
+    "compatibility.sodium.FFluidlogging_LevelSlice",
     "update_shape_fixes.FFluidlogging_AmethystClusterBlock",
     "update_shape_fixes.FFluidlogging_BarrierBlock",
     "update_shape_fixes.FFluidlogging_BaseCoralPlantTypeBlock",
