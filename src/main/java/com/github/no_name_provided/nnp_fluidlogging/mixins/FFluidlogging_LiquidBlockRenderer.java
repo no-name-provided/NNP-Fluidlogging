@@ -45,6 +45,8 @@ abstract class FFluidlogging_LiquidBlockRenderer {
         return !LiquidBlockRenderer.isFaceOccludedBySelf(level, pos, selfState, direction) && !fluidState.getType().isSame(level.getFluidState(pos.relative(direction)).getType());
     }
     
+    //region #tesselate patches ------------------------------------------------------------
+    
     @ModifyVariable(method = "tesselate(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)V",
             at = @At("STORE"),
             name = "fluidstate"
@@ -99,6 +101,8 @@ abstract class FFluidlogging_LiquidBlockRenderer {
         return NNPFluidlogging$checkFluidState(pos.relative(Direction.EAST), level);
     }
     
+    //endregion ------------------------------------------------------------
+    
     /**
      * This is actually a mixin for a wrapper for the "real" getHeight function. We make it pass the correct FluidState
      * as the last parameter to the wrapped call. Fixes glitch where fluid blocks diagonal to fluidlogged blocks treat
@@ -123,7 +127,6 @@ abstract class FFluidlogging_LiquidBlockRenderer {
         
         return thisFluid.isSame(NNPFluidlogging$checkFluidState(pos.above(), level).getType());
     }
-    
     
     /**
      * Convenience method for checking fluid states during rendering with some degree of efficiency.
