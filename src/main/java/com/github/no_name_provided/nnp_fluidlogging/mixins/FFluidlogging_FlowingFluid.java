@@ -1,6 +1,7 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
+import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
 import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -127,7 +128,7 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
             if (level.getAuxLightManager(pos.immutable()) instanceof AuxiliaryLightManager lManager) {
                 lManager.removeLightAt(pos.immutable());
             }
-            if (level instanceof ServerLevel sLevel) {
+            if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
                 sLevel.players().forEach(player ->
                         player.connection.send(new AuxLightManagerUpdatePayload(0, pos.immutable().asLong()))
                 );

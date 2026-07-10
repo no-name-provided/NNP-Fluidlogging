@@ -102,7 +102,7 @@ abstract class FFluidlogging_BlockBehavior {
                                     }
                             );
                         }
-                    } else if (level instanceof ServerLevel sLevel) {
+                    } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
                         // Send our custom light level update packet
                         BlockState finalOldState = oldState;
                         sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
@@ -139,7 +139,7 @@ abstract class FFluidlogging_BlockBehavior {
                             }
                     );
                 }
-            } else if (level instanceof ServerLevel sLevel) {
+            } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
                 // Send our custom light level update packet (targeted approach)
                 sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
                         player.connection.send(new AuxLightManagerUpdatePayload(
@@ -184,7 +184,7 @@ abstract class FFluidlogging_BlockBehavior {
                             }
                     );
                 }
-            } else if (level instanceof ServerLevel sLevel) {
+            } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
                 // Send our custom light level update packet
                 sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
                         player.connection.send(new AuxLightManagerUpdatePayload(

@@ -115,7 +115,7 @@ dependencies {
 //    runtimeOnly "net.caffeinemc:sodium-neoforge-mod:0.8.12-beta.2+mc1.21.1" // "net.caffeinemc:sodium-neoforge-api:0.8.12-beta.2+mc1.21.1"
 //    runtimeOnly "net.caffeinemc:sodium-neoforge:0.8.12-beta.2+mc1.21.1"
     compileOnly "curse.maven:sodium-394468:8382328"
-    runtimeOnly "curse.maven:sodium-394468:8382328"
+//    runtimeOnly "curse.maven:sodium-394468:8382328"
 
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

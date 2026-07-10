@@ -141,7 +141,7 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 if (lManagerExists) {
                     lManager.setLightAt(iPos, lightLevel);
                 }
-                if (level instanceof ServerLevel sLevel) {
+                if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
                     sLevel.players().forEach(player ->
                             player.connection.send(new AuxLightManagerUpdatePayload(lightLevel, pos.immutable().asLong()))
                     );
