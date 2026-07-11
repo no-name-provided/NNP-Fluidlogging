@@ -113,10 +113,10 @@ abstract class FFluidlogging_BlockBehavior {
                     }
                 }
             }
-        } else {
+        } else if (level.getChunk(pos) instanceof LevelChunk chunk) {
             // Clean up any lingering entry in our data structure. Shouldn't be necessary,
             // and can probably be removed if there's a performance issue
-            ChunkAccess chunk = level.getChunk(pos);
+           
             if (!level.isClientSide()) {
                 FluidStates states = chunk.getData(FAttachments.FLUID_STATES);
                 states.remove(pos);

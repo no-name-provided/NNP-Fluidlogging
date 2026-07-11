@@ -4,6 +4,9 @@ import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStat
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.attachment.AttachmentSyncHandler;
@@ -63,6 +66,7 @@ public class FluidStatesAttachmentSyncHandler implements AttachmentSyncHandler<F
     @Override
     public @Nullable FluidStates read(IAttachmentHolder holder, RegistryFriendlyByteBuf buf, @Nullable FluidStates oldStates) {
         if (oldStates == null) {
+            
             return FluidStates.STREAM_CODEC.decode(buf);
         } else {
             // We only send modified entries, so we need to merge the new values with the old
@@ -75,7 +79,20 @@ public class FluidStatesAttachmentSyncHandler implements AttachmentSyncHandler<F
             // (Theoretically) prevent small memory leak - this isn't used on the client,
             // but may be populated by common code
             oldStates.unsyncedUpdates().clear();
+            
             return oldStates;
         }
+    }
+    
+    /**
+     * Workaround for a bug where attachments try to sync too early during worldgen May be related to
+     * <a href="https://mojira.dev/MC-299444">MC-299444</a>. #BlameTheNeoForgedTeam
+     */
+    @Override
+    public boolean sendToPlayer(IAttachmentHolder holder, ServerPlayer to) {
+        ChunkAccess chunk = (ChunkAccess) holder;
+        return chunk.getLevel() instanceof ServerLevel level &&
+                level.getChunkSource().chunkMap.isChunkTracked(to, chunk.getPos().x, chunk.getPos().z);
+//        return ((ChunkAccess) holder).getPersistedStatus() == ChunkStatus.FULL;
     }
 }

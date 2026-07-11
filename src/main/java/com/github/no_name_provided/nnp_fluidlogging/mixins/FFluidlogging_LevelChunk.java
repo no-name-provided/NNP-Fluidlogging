@@ -32,6 +32,8 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
     @Final @Shadow
     Level level;
     
+    @Shadow private boolean loaded;
+    
     private FFluidlogging_LevelChunk(ChunkPos pos, UpgradeData data, LevelHeightAccessor heightGetter, Registry<Biome> biomeRegistry, long rand, @Nullable LevelChunkSection[] levelChunkSections, @Nullable BlendingData blendingData) {
         super(pos, data, heightGetter, biomeRegistry, rand, levelChunkSections, blendingData);
     }
@@ -42,10 +44,6 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
      * <p>
      * Heavily borrows from vanilla.
      * </p>
-     * <p>
-     * Wrapping and ignoring original call for efficiency - this method was performance critical in testing. Other mods
-     * can "override" this by using the same type of mixin (with higher/lower priority).
-     * </p>
      */
     @WrapMethod(method = "getFluidState(III)Lnet/minecraft/world/level/material/FluidState;")
     private FluidState nnp_f_fluidlogging_getFluidState(int x, int y, int z, Operation<FluidState> original) {
@@ -53,13 +51,18 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
         // section-by-section approach, which skips empty sections entirely. However,
         // the majority of the lag was fixed by using correct (section) coordinates
         
-        // We have to use section coordinates here, or we'll quietly grab the wrong attachment
-        FluidStates states = level.getChunk(
-                SectionPos.blockToSectionCoord(x),
-                SectionPos.blockToSectionCoord(z)
-        ).getData(FLUID_STATES);
-        
-        // Might have a recursion issue somewhere with this default value
-        return states.getOrDefault(new BlockPos(x, y, z), level.getBlockState(new BlockPos(x, y, z)).getFluidState());
+        if (loaded) {
+            // We have to use section coordinates here, or we'll quietly grab the wrong attachment
+            FluidStates states = level.getChunk(
+                    SectionPos.blockToSectionCoord(x),
+                    SectionPos.blockToSectionCoord(z)
+            ).getData(FLUID_STATES);
+            
+            // Might have a recursion issue somewhere with this default value
+            return states.getOrDefault(new BlockPos(x, y, z), original.call(x, y, z));
+        } else {
+            
+            return original.call(x, y, z);
+        }
     }
 }
