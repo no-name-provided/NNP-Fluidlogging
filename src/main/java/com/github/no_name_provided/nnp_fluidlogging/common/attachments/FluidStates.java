@@ -36,8 +36,38 @@ public record FluidStates(HashMap<BlockPos, FluidState> map, HashMap<BlockPos, F
             ).apply(inst, instance -> new FluidStates(instance, new HashMap<>()))
     );
     
-    public static StreamCodec<RegistryFriendlyByteBuf, FluidStates> STREAM_CODEC =
-            ByteBufCodecs.fromCodecWithRegistries(CODEC);
+    private static final StreamCodec<RegistryFriendlyByteBuf, FluidState> FLUID_STATE_STREAM_CODEC =
+            ByteBufCodecs.fromCodecWithRegistries(FluidState.CODEC);
+    
+    public static StreamCodec<RegistryFriendlyByteBuf, HashMap<BlockPos, FluidState>> STREAM_CODEC_FOR_UPDATES =
+            ByteBufCodecs.map(
+                    HashMap::new,
+                    BlockPos.STREAM_CODEC,
+                    FLUID_STATE_STREAM_CODEC
+            );
+    
+    public static StreamCodec<RegistryFriendlyByteBuf, HashMap<BlockPos, FluidState>> SAFE_STREAM_CODEC_FOR_UPDATES =
+            StreamCodec.of(
+                    (buf, map) -> {
+                        buf.writeVarInt(map.size());
+                        map.forEach((pos, state) -> {
+                            BlockPos.STREAM_CODEC.encode(buf, pos);
+                            FLUID_STATE_STREAM_CODEC.encode(buf, state);
+                        });
+                    },
+                    buf -> {
+                        int size = buf.readVarInt();
+                        HashMap<BlockPos, FluidState> updates = new HashMap<>(size);
+                        for (int i = 0; i < size; i++) {
+                            updates.put(
+                                    BlockPos.STREAM_CODEC.decode(buf),
+                                    FLUID_STATE_STREAM_CODEC.decode(buf)
+                            );
+                        }
+                        
+                        return updates;
+                    }
+            );
     
     /**
      * Wrapper for Map#put that updates our map of unsynced updates.
@@ -82,7 +112,12 @@ public record FluidStates(HashMap<BlockPos, FluidState> map, HashMap<BlockPos, F
      * @return The value that was removed, or null if not present.
      */
     public @Nullable FluidState remove(BlockPos pos) {
-        unsyncedUpdates().put(pos, Fluids.EMPTY.defaultFluidState());
-        return map().remove(pos);
+        @Nullable FluidState oldState = map().remove(pos);
+        if (oldState != null) {
+            // Mark removal as an EMPTY fluid state so clients can remove the entry
+            unsyncedUpdates().put(pos, Fluids.EMPTY.defaultFluidState());
+        }
+        
+        return oldState;
     }
 }
