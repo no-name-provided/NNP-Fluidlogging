@@ -1,9 +1,7 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
-import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
-import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -26,7 +24,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
+import static com.github.no_name_provided.nnp_fluidlogging.common.helpers.MiscHelpers.safeSyncChunkAttachment;
+import static com.github.no_name_provided.nnp_fluidlogging.common.helpers.MiscHelpers.updateClientLightLevels;
 
 @Mixin(FlowingFluid.class)
 abstract class FFluidlogging_FlowingFluid extends Fluid {
@@ -123,14 +124,17 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                 flag = original.call(level, pos, oldState.setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE), Block.UPDATE_ALL);
             }
             ChunkAccess chunk = level.getChunkAt(pos);
-            chunk.getData(FAttachments.FLUID_STATES).remove(pos.immutable());
-            chunk.syncData(FAttachments.FLUID_STATES);
+            chunk.getData(FLUID_STATES).remove(pos.immutable());
+            safeSyncChunkAttachment(chunk, FLUID_STATES);
+//            chunk.syncData(FAttachments.FLUID_STATES);
             if (level.getAuxLightManager(pos.immutable()) instanceof AuxiliaryLightManager lManager) {
                 lManager.removeLightAt(pos.immutable());
             }
             if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
-                sLevel.players().forEach(player ->
-                        player.connection.send(new AuxLightManagerUpdatePayload(0, pos.immutable().asLong()))
+                updateClientLightLevels(
+                        pos,
+                        0,
+                        sLevel
                 );
             }
             chunk.setUnsaved(true);

@@ -51,7 +51,7 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
         // section-by-section approach, which skips empty sections entirely. However,
         // the majority of the lag was fixed by using correct (section) coordinates
         
-        if (loaded) {
+        if (loaded && level.hasChunk(chunkPos.x, chunkPos.z)) {
             // We have to use section coordinates here, or we'll quietly grab the wrong attachment
             FluidStates states = level.getChunk(
                     SectionPos.blockToSectionCoord(x),

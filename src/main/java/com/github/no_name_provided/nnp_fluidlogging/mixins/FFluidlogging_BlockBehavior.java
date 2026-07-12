@@ -1,10 +1,8 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
-import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
-import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -27,7 +25,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
+import static com.github.no_name_provided.nnp_fluidlogging.common.helpers.MiscHelpers.safeSyncChunkAttachment;
+import static com.github.no_name_provided.nnp_fluidlogging.common.helpers.MiscHelpers.updateClientLightLevels;
 
 /**
  * Important mixins - clear fluid from data structure when logged blocks are broken.
@@ -43,9 +44,11 @@ abstract class FFluidlogging_BlockBehavior {
     @Inject(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
             at = @At("TAIL"))
     private void nnp_f_fluidlogging_updateShape(BlockState newState, Direction direction, BlockState oldState, LevelAccessor level, BlockPos pos, BlockPos triggerPos, CallbackInfoReturnable<BlockState> cir) {
-        FluidState fluidState = level.getFluidState(pos);
-        if (newState.getBlock() instanceof SimpleWaterloggedBlock && !fluidState.isEmpty()) {
-            level.scheduleTick(pos, fluidState.getType(), fluidState.getType().getTickDelay(level));
+        if (newState.getBlock() instanceof SimpleWaterloggedBlock) {
+            FluidState fluidState = level.getFluidState(pos);
+            if (!fluidState.isEmpty()) {
+                level.scheduleTick(pos, fluidState.getType(), fluidState.getType().getTickDelay(level));
+            }
         }
     }
     
@@ -59,6 +62,7 @@ abstract class FFluidlogging_BlockBehavior {
     @Inject(method = "onPlace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V",
             at = @At("HEAD"))
     private void nnp_f_fluidlogging_onPlace(BlockState newState, Level level, BlockPos pos, BlockState oldState, boolean flag, CallbackInfo ci) {
+        boolean isLoaded = level.isLoaded(pos);
         if (newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             
             // Respect fluid level limits - only works for flowing fluids
@@ -79,9 +83,10 @@ abstract class FFluidlogging_BlockBehavior {
                     ChunkAccess chunk = level.getChunk(pos);
                     // We don't need to avoid #getFluidState for liquid blocks.
                     // Since they can't be logged, it's always correct
-                    chunk.getData(FAttachments.FLUID_STATES).put(pos, oldState.getFluidState());
-                    if (!level.isClientSide()) {
-                        chunk.syncData(FAttachments.FLUID_STATES);
+                    chunk.getData(FLUID_STATES).put(pos, oldState.getFluidState());
+                    if (!level.isClientSide() && isLoaded) {
+                        safeSyncChunkAttachment(chunk, FLUID_STATES);
+//                        chunk.syncData(FAttachments.FLUID_STATES);
                     }
                     AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
                     if (lManager != null) {
@@ -102,25 +107,27 @@ abstract class FFluidlogging_BlockBehavior {
                                     }
                             );
                         }
-                    } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
+                    } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel && isLoaded) {
                         // Send our custom light level update packet
-                        BlockState finalOldState = oldState;
-                        sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
-                                player.connection.send(new AuxLightManagerUpdatePayload(
-                                        finalOldState.getFluidState().getFluidType().getLightLevel(finalOldState.getFluidState(), level, pos),
-                                        pos.asLong()))
+                        FluidState oldFluidState = oldState.getFluidState();
+                        updateClientLightLevels(
+                                pos,
+                                oldFluidState.getFluidType().getLightLevel(oldFluidState, level, pos),
+                                sLevel
                         );
                     }
                 }
             }
-        } else if (level.getChunk(pos) instanceof LevelChunk chunk) {
+        } else if (level.getChunk(pos) instanceof LevelChunk chunk && isLoaded) {
             // Clean up any lingering entry in our data structure. Shouldn't be necessary,
             // and can probably be removed if there's a performance issue
-           
+            
             if (!level.isClientSide()) {
-                FluidStates states = chunk.getData(FAttachments.FLUID_STATES);
+                FluidStates states = chunk.getData(FLUID_STATES);
                 states.remove(pos);
-                chunk.syncData(FAttachments.FLUID_STATES);
+                safeSyncChunkAttachment(chunk, FLUID_STATES);
+//                    chunk.syncData(FLUID_STATES);
+            
             }
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
             if (lManager != null) {
@@ -141,11 +148,12 @@ abstract class FFluidlogging_BlockBehavior {
                 }
             } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
                 // Send our custom light level update packet (targeted approach)
-                sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
-                        player.connection.send(new AuxLightManagerUpdatePayload(
-                                0,
-                                pos.asLong()))
+                updateClientLightLevels(
+                        pos,
+                        0,
+                        sLevel
                 );
+                
             }
         }
         
@@ -165,8 +173,9 @@ abstract class FFluidlogging_BlockBehavior {
         if (!newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             ChunkAccess chunk = level.getChunk(pos);
             // This is fine, since we shouldn't have null values in this map
-            if (!level.isClientSide() && chunk.getData(FAttachments.FLUID_STATES).remove(pos) != null) {
-                chunk.syncData(FAttachments.FLUID_STATES);
+            if (!level.isClientSide() && chunk.getData(FLUID_STATES).remove(pos) != null) {
+                safeSyncChunkAttachment(chunk, FLUID_STATES);
+//               safeSetChunkUnsaved(chunk);
                 chunk.setUnsaved(true);
             }
             
@@ -186,12 +195,7 @@ abstract class FFluidlogging_BlockBehavior {
                 }
             } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
                 // Send our custom light level update packet
-                sLevel.getPlayers(player -> player.level().equals(level)).forEach(player ->
-                        player.connection.send(new AuxLightManagerUpdatePayload(
-                                // Setting the light level to 0 is the same as calling #removeLightAt
-                                0,
-                                pos.asLong()))
-                );
+                updateClientLightLevels(pos, 0, sLevel);
             }
         }
     }

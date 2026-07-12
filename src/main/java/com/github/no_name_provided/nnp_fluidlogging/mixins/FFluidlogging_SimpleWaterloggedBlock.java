@@ -3,7 +3,6 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
-import com.github.no_name_provided.nnp_fluidlogging.common.network.payloads.AuxLightManagerUpdatePayload;
 import com.github.no_name_provided.nnp_fluidlogging.common.wrappers.ClientClassWrappers;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -37,6 +36,8 @@ import java.util.Optional;
 
 import static com.github.no_name_provided.nnp_fluidlogging.common.attachments.FAttachments.FLUID_STATES;
 import static com.github.no_name_provided.nnp_fluidlogging.common.data_maps.FDataMaps.BLOCKSTATE_FLUID_LEVEL_LIMITS;
+import static com.github.no_name_provided.nnp_fluidlogging.common.helpers.MiscHelpers.safeSyncChunkAttachment;
+import static com.github.no_name_provided.nnp_fluidlogging.common.helpers.MiscHelpers.updateClientLightLevels;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
 /**
@@ -121,7 +122,8 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             if (fluidState.is(Fluids.WATER) && fluidState.isSource()) {
                 // Only sync if we actually update our data structure
                 if (fluidStates.remove(iPos) != null && !level.isClientSide()) {
-                    chunk.syncData(FLUID_STATES);
+                    safeSyncChunkAttachment(chunk, FLUID_STATES);
+//                    chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
                     lManager.removeLightAt(iPos);
@@ -135,15 +137,18 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             } else {
                 fluidStates.put(iPos, fluidState);
                 if (!level.isClientSide()) {
-                    chunk.syncData(FLUID_STATES);
+                    safeSyncChunkAttachment(chunk, FLUID_STATES);
+//                    chunk.syncData(FLUID_STATES);
                 }
                 int lightLevel = fluidState.getFluidType().getLightLevel(fluidState, level, pos);
                 if (lManagerExists) {
                     lManager.setLightAt(iPos, lightLevel);
                 }
                 if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
-                    sLevel.players().forEach(player ->
-                            player.connection.send(new AuxLightManagerUpdatePayload(lightLevel, pos.immutable().asLong()))
+                    updateClientLightLevels(
+                            pos,
+                            lightLevel,
+                            sLevel
                     );
                 }
                 chunk.setUnsaved(true);
@@ -200,7 +205,8 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             // Only matches source blocks (flowing blocks are a different class)
         } else if (fluidState.is(Fluids.LAVA)) {
             states.remove(iPos);
-            chunk.syncData(FLUID_STATES);
+            safeSyncChunkAttachment(chunk, FLUID_STATES);
+//            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
             }
@@ -210,7 +216,8 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.setReturnValue(Items.LAVA_BUCKET.getDefaultInstance());
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
             states.remove(iPos);
-            chunk.syncData(FLUID_STATES);
+            safeSyncChunkAttachment(chunk, FLUID_STATES);
+//            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
             }
@@ -220,7 +227,8 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
             cir.setReturnValue(fluidState.getType().getBucket().getDefaultInstance());
         } else {
             states.remove(iPos);
-            chunk.syncData(FLUID_STATES);
+            safeSyncChunkAttachment(chunk, FLUID_STATES);
+//            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
             }
