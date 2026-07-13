@@ -123,7 +123,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 // Only sync if we actually update our data structure
                 if (fluidStates.remove(iPos) != null && !level.isClientSide()) {
                     safeSyncChunkAttachment(chunk, FLUID_STATES);
-//                    chunk.syncData(FLUID_STATES);
                 }
                 if (lManagerExists) {
                     lManager.removeLightAt(iPos);
@@ -138,7 +137,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                 fluidStates.put(iPos, fluidState);
                 if (!level.isClientSide()) {
                     safeSyncChunkAttachment(chunk, FLUID_STATES);
-//                    chunk.syncData(FLUID_STATES);
                 }
                 int lightLevel = fluidState.getFluidType().getLightLevel(fluidState, level, pos);
                 if (lManagerExists) {
@@ -148,7 +146,8 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                     updateClientLightLevels(
                             pos,
                             lightLevel,
-                            sLevel
+                            sLevel,
+                            true
                     );
                 }
                 chunk.setUnsaved(true);
@@ -206,7 +205,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         } else if (fluidState.is(Fluids.LAVA)) {
             states.remove(iPos);
             safeSyncChunkAttachment(chunk, FLUID_STATES);
-//            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
             }
@@ -217,7 +215,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         } else if (!fluidState.isEmpty() && fluidState.isSource()) {
             states.remove(iPos);
             safeSyncChunkAttachment(chunk, FLUID_STATES);
-//            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.setLightAt(iPos, fluidState.getFluidType().getLightLevel(fluidState, level, iPos));
             }
@@ -228,7 +225,6 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
         } else {
             states.remove(iPos);
             safeSyncChunkAttachment(chunk, FLUID_STATES);
-//            chunk.syncData(FLUID_STATES);
             if (lManagerExists) {
                 lManager.removeLightAt(iPos);
             }

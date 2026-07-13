@@ -1,6 +1,5 @@
 package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
-import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
 import net.minecraft.core.BlockPos;
@@ -86,10 +85,11 @@ abstract class FFluidlogging_BlockBehavior {
                     chunk.getData(FLUID_STATES).put(pos, oldState.getFluidState());
                     if (!level.isClientSide() && isLoaded) {
                         safeSyncChunkAttachment(chunk, FLUID_STATES);
-//                        chunk.syncData(FAttachments.FLUID_STATES);
                     }
                     AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
+                    int oldLightLevel = 0;
                     if (lManager != null) {
+                        oldLightLevel = lManager.getLightAt(pos);
                         lManager.setLightAt(pos, oldState.getFluidState().getFluidType().getLightLevel(oldState.getFluidState(), level, pos));
                     }
                     if (!level.isClientSide()) {
@@ -108,32 +108,35 @@ abstract class FFluidlogging_BlockBehavior {
                             );
                         }
                     } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel && isLoaded) {
-                        // Send our custom light level update packet
-                        FluidState oldFluidState = oldState.getFluidState();
-                        updateClientLightLevels(
-                                pos,
-                                oldFluidState.getFluidType().getLightLevel(oldFluidState, level, pos),
-                                sLevel
-                        );
+                        // Prevent redundant packets
+                        if (lManager != null && oldLightLevel != lManager.getLightAt(pos)) {
+                            // Send our custom light level update packet
+                            FluidState oldFluidState = oldState.getFluidState();
+                            updateClientLightLevels(
+                                    pos,
+                                    oldFluidState.getFluidType().getLightLevel(oldFluidState, level, pos),
+                                    sLevel,
+                                    true
+                            );
+                        }
                     }
                 }
             }
-        } else if (level.getChunk(pos) instanceof LevelChunk chunk && isLoaded) {
             // Clean up any lingering entry in our data structure. Shouldn't be necessary,
             // and can probably be removed if there's a performance issue
-            
-            if (!level.isClientSide()) {
-                FluidStates states = chunk.getData(FLUID_STATES);
-                states.remove(pos);
+        } else if (level.getChunk(pos) instanceof LevelChunk chunk && isLoaded) {
+            // Conditional has side effects
+            if (!level.isClientSide() && chunk.getData(FLUID_STATES).remove(pos) != null) {
                 safeSyncChunkAttachment(chunk, FLUID_STATES);
-//                    chunk.syncData(FLUID_STATES);
-            
+                chunk.setUnsaved(true);
             }
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
+            int oldLightLevel = 0;
             if (lManager != null) {
+                oldLightLevel = lManager.getLightAt(pos);
                 lManager.removeLightAt(pos);
+                chunk.setUnsaved(true);
             }
-            chunk.setUnsaved(true);
             // Fixes desync issue
             if (ServerConfig.forceChunkUpdates) {
                 // Crude approach
@@ -147,16 +150,13 @@ abstract class FFluidlogging_BlockBehavior {
                     );
                 }
             } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
-                // Send our custom light level update packet (targeted approach)
-                updateClientLightLevels(
-                        pos,
-                        0,
-                        sLevel
-                );
-                
+                // Prevent redundant packets
+                if (oldLightLevel != 0) {
+                    // Send our custom light level update packet (targeted approach)
+                    updateClientLightLevels(pos, 0, sLevel, true);
+                }
             }
         }
-        
     }
     
     /**
@@ -175,12 +175,13 @@ abstract class FFluidlogging_BlockBehavior {
             // This is fine, since we shouldn't have null values in this map
             if (!level.isClientSide() && chunk.getData(FLUID_STATES).remove(pos) != null) {
                 safeSyncChunkAttachment(chunk, FLUID_STATES);
-//               safeSetChunkUnsaved(chunk);
                 chunk.setUnsaved(true);
             }
             
             AuxiliaryLightManager lManager = level.getAuxLightManager(pos);
+            int oldLightLevel = 0;
             if (lManager != null) {
+                oldLightLevel = lManager.getLightAt(pos);
                 lManager.removeLightAt(pos);
             }
             if (ServerConfig.forceChunkUpdates) {
@@ -194,8 +195,11 @@ abstract class FFluidlogging_BlockBehavior {
                     );
                 }
             } else if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
-                // Send our custom light level update packet
-                updateClientLightLevels(pos, 0, sLevel);
+                // Avoid redundant packets
+                if (oldLightLevel != 0) {
+                    // Send our custom light level update packet
+                    updateClientLightLevels(pos, 0, sLevel, true);
+                }
             }
         }
     }

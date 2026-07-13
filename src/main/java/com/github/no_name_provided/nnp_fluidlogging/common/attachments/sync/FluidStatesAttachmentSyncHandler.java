@@ -4,8 +4,6 @@ import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStat
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.server.level.FullChunkStatus;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -115,21 +113,21 @@ public class FluidStatesAttachmentSyncHandler implements AttachmentSyncHandler<F
     @Override
     public boolean sendToPlayer(IAttachmentHolder holder, ServerPlayer to) {
 //        return false;
-        
-        if (holder instanceof LevelChunk chunk) {
-            ChunkPos pos = chunk.getPos();
-            
-            return chunk.getFullStatus() != FullChunkStatus.INACCESSIBLE &&
-                    chunk.getPersistedStatus() == ChunkStatus.FULL &&
-                    to.level() == chunk.getLevel() &&
-                    // Interestingly, this is not enough to ensure the chunk is actually being tracked by the client...
-                    ((ServerLevel) chunk.getLevel()).getChunkSource().chunkMap.isChunkTracked(to, pos.x, pos.z);
+
+            // Filter out worldgen noise
+            if (holder instanceof LevelChunk chunk) {
+                ChunkPos pos = chunk.getPos();
+                // Try to filter out untracked chunks... and more worldgen noise
+                return chunk.getPersistedStatus() == ChunkStatus.FULL &&
+                        to.level() == chunk.getLevel() &&
+                        // Interestingly, this is not enough to ensure the chunk is actually being tracked by the client...
+                        to.serverLevel().getChunkSource().chunkMap.isChunkTracked(to, pos.x, pos.z);
 //                    chunk.isInLevel() &&
 //                    to.getChunkTrackingView().isInViewDistance(chunk.getPos().x, chunk.getPos().z);
-        } else {
-            
-            return false;
-        }
+            } else {
+                
+                return false;
+            }
 
 //        ChunkAccess chunk = (ChunkAccess) holder;
 //        return chunk.getLevel() instanceof ServerLevel level &&

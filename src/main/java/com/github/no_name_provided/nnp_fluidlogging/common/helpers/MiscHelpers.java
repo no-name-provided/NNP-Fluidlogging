@@ -19,13 +19,20 @@ public class MiscHelpers {
     public static <T> void safeSyncChunkAttachment(ChunkAccess chunk, DeferredHolder<AttachmentType<?>, AttachmentType<T>> type) {
         if (
                 chunk instanceof LevelChunk levelChunk &&
-                        levelChunk.getLevel().getServer() instanceof MinecraftServer server && server.isSameThread()
+                        levelChunk.getLevel().getServer() instanceof MinecraftServer server &&
+                        server.isSameThread()
         ) {
             levelChunk.syncData(type);
         }
     }
     
-    public static void updateClientLightLevels(BlockPos pos, int lightLevel, ServerLevel sLevel) {
+    public static void updateClientLightLevels(BlockPos pos, int lightLevel, ServerLevel sLevel, boolean requireMainThread) {
+        // Filter out updates that are sent too early
+        if (requireMainThread && !sLevel.getServer().isSameThread()) {
+            
+            return;
+        }
+        
         ChunkPos chunkPos = new ChunkPos(pos);
         sLevel.getPlayers(player ->
                 player.level().equals(sLevel) &&

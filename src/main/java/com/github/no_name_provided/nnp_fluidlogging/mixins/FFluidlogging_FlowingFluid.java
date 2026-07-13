@@ -134,7 +134,8 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
                 updateClientLightLevels(
                         pos,
                         0,
-                        sLevel
+                        sLevel,
+                        true
                 );
             }
             chunk.setUnsaved(true);
