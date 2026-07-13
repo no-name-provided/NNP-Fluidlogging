@@ -29,7 +29,7 @@ public class AuxLightManagerHandler {
         AuxiliaryLightManager lManager = context.player().level().getAuxLightManager(BlockPos.of(payload.blockPos()));
         if (lManager != null) {
             lManager.setLightAt(BlockPos.of(payload.blockPos()), payload.lightLevel());
-        } else if (logger.isDebugEnabled()) {
+        } else {
             BlockPos pos = BlockPos.of(payload.blockPos());
             logger.debug("Failed to update client light level:\nBlockPos: {}\nBlock: {}\nFluidState: {}\nNew Light Level: {}\nbecause the AuxiliaryLightManager is not currently available for that chunk. This may happen when packets are sent too early in the chunk loading process. \n\n*If* this is causing rendering errors, consider setting \"Force Chunk Updates\" to \"True\" as a workaround.", pos, context.player().level().getBlockState(pos), context.player().level().getFluidState(pos), payload.lightLevel());
         }
