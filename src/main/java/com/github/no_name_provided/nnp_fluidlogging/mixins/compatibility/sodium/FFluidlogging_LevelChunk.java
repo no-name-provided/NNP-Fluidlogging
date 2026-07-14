@@ -1,4 +1,4 @@
-package com.github.no_name_provided.nnp_fluidlogging.mixins;
+package com.github.no_name_provided.nnp_fluidlogging.mixins.compatibility.sodium;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.attachments.FluidStates;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
@@ -55,7 +55,9 @@ abstract class FFluidlogging_LevelChunk extends ChunkAccess {
         // section-by-section approach, which skips empty sections entirely. However,
         // the majority of the lag was fixed by using correct (section) coordinates
         
-        if (loaded && level.hasChunk(chunkPos.x, chunkPos.z)) {
+        // We need the isClientSide check here for Sodium compat, since the client doesn't bother to set isLoaded
+        // to true (tracked chunks are always loaded) and Sodium defers to this method in situations where vanilla doesn't
+        if ((loaded || (level.isClientSide() && this.getPersistedStatus() == ChunkStatus.FULL)) && level.hasChunk(chunkPos.x, chunkPos.z)) {
             FluidStates states = getData(FLUID_STATES);
             
             // Might have a recursion issue somewhere with this default value

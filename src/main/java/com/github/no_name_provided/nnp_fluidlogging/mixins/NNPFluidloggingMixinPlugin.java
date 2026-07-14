@@ -29,6 +29,10 @@ public final class NNPFluidloggingMixinPlugin implements IMixinConfigPlugin {
         if (targetClassName.contains("net.caffeinemc.mods.sodium")) {
             
             return checkModLoading("sodium");
+            // We have to use a less performant mixin when sodium is installed - small difference, but called often, and high-impact
+        } else if (mixinClassName.equals("com.github.no_name_provided.nnp_fluidlogging.mixins.FFluidlogging_LevelChunk.java")) {
+            
+            return !checkModLoading("sodium");
         } else {
             
             return true;
