@@ -139,16 +139,21 @@ public interface FFluidlogging_SimpleWaterloggedBlock {
                     safeSyncChunkAttachment(chunk, FLUID_STATES);
                 }
                 int lightLevel = fluidState.getFluidType().getLightLevel(fluidState, level, pos);
+                int oldLightLevel = lightLevel;
                 if (lManagerExists) {
+                    oldLightLevel = lManager.getLightAt(pos);
                     lManager.setLightAt(iPos, lightLevel);
                 }
                 if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
-                    updateClientLightLevels(
-                            pos,
-                            lightLevel,
-                            sLevel,
-                            true
-                    );
+                    // Avoid redundant packets
+                    if (oldLightLevel != lightLevel) {
+                        updateClientLightLevels(
+                                pos,
+                                lightLevel,
+                                sLevel,
+                                true
+                        );
+                    }
                 }
                 chunk.setUnsaved(true);
             }

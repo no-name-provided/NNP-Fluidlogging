@@ -42,22 +42,24 @@ public class FluidStatesAttachmentSyncHandler implements AttachmentSyncHandler<F
      */
     @Override
     public void write(RegistryFriendlyByteBuf buf, FluidStates states, boolean initialSync) {
-        // Use a defensive copy so concurrent mutation can't corrupt the buffer encoding
+        // Defensive copy
         HashMap<BlockPos, FluidState> snapshot = initialSync ? new HashMap<>(states.map()) : new HashMap<>(states.unsyncedUpdates());
-        if (initialSync) {
-            // Sending empty attachments is pointless
-            FluidStates.SAFE_STREAM_CODEC_FOR_UPDATES.encode(buf, snapshot);
-            
-            // Only send a packet if there were changes
-        } else if (!snapshot.isEmpty()) {
-            // Encode only the updates
-            FluidStates.SAFE_STREAM_CODEC_FOR_UPDATES.encode(buf, snapshot);
-            // This method is only called once, and the results cached, so we don't need to worry about mutating
-            // our attachment here. The map of updates isn't saved on unload, so setting chunks dirty
-            // isn't an issue, either
-            //
-            // TODO: make sure there aren't threading/concurrency issues
-            states.unsyncedUpdates().clear();
+        // Sending empty attachments/updates is pointless. We always write a VAR_INT to the buffer when we
+        // encode our map, so this early check is necessary
+        if (!snapshot.isEmpty()) {
+            if (initialSync) {
+                // Encode the working map
+                FluidStates.SAFE_STREAM_CODEC_FOR_UPDATES.encode(buf, snapshot);
+            } else {
+                // Encode only the updates
+                FluidStates.SAFE_STREAM_CODEC_FOR_UPDATES.encode(buf, snapshot);
+                // This method is only called once, and the results cached, so we don't need to worry about mutating
+                // our attachment here. The map of updates isn't saved on unload, so setting chunks dirty
+                // isn't required
+                //
+                // TODO: make sure there aren't threading/concurrency issues
+                states.unsyncedUpdates().clear();
+            }
         }
     }
     

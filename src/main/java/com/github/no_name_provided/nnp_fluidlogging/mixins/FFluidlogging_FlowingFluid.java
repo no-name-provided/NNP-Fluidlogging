@@ -2,6 +2,7 @@ package com.github.no_name_provided.nnp_fluidlogging.mixins;
 
 import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.github.no_name_provided.nnp_fluidlogging.common.data_maps.contents.BlockStateFluidLevelLimits;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -11,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -80,6 +82,33 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
         return level.getFluidState(blockpos1);
     }
     
+    @ModifyReturnValue(method = "getNewLiquid(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;",
+            at = @At(value = "RETURN", target = "Lnet/neoforged/neoforge/event/EventHooks;canCreateFluidSource(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
+    private FluidState nnp_f_fluidlogging_getNewLiquid_respectLevelLimits(FluidState original, Level level, BlockPos pos, BlockState blockState) {
+        if (blockState.getBlock() instanceof SimpleWaterloggedBlock) {
+            @SuppressWarnings("deprecation") // Probably more efficient than a registry lookup
+            BlockStateFluidLevelLimits levelLimits = blockState.getBlock().builtInRegistryHolder().getData(BLOCKSTATE_FLUID_LEVEL_LIMITS);
+            if (levelLimits != null) {
+                if (original.getAmount() < levelLimits.getMinLevel(blockState, original.getFluidType())) {
+                    // If the level is too low, we prevent flow the same way vanilla does - by returning the empty fluid.
+                    original = Fluids.EMPTY.defaultFluidState();
+                } else if (original.getAmount() > levelLimits.getMaxLevel(blockState, original.getFluidType())) {
+                    // Makes sure the level isn't too high - only supports flowing fluids
+                    if (original.isSource() && original.getType() instanceof FlowingFluid flowingFluid) {
+                        original = flowingFluid.getFlowing(levelLimits.getMaxLevel(blockState, original.getFluidType()), false);
+                    } else {
+                        original = original.trySetValue(BlockStateProperties.LEVEL_FLOWING, levelLimits.getMaxLevel(blockState, original.getFluidType()));
+                    }
+                }
+            }
+            
+            return original;
+        } else {
+            
+            return original;
+        }
+    }
+    
     //endregion ---------------------------------------------------------------------
     
     //region #tick patches
@@ -126,17 +155,21 @@ abstract class FFluidlogging_FlowingFluid extends Fluid {
             ChunkAccess chunk = level.getChunkAt(pos);
             chunk.getData(FLUID_STATES).remove(pos.immutable());
             safeSyncChunkAttachment(chunk, FLUID_STATES);
-//            chunk.syncData(FAttachments.FLUID_STATES);
+            int oldLightLevel = 0;
             if (level.getAuxLightManager(pos.immutable()) instanceof AuxiliaryLightManager lManager) {
+                oldLightLevel = lManager.getLightAt(pos.immutable());
                 lManager.removeLightAt(pos.immutable());
             }
             if (ServerConfig.considerFluidLightLevel && level instanceof ServerLevel sLevel) {
-                updateClientLightLevels(
-                        pos,
-                        0,
-                        sLevel,
-                        true
-                );
+                // Suppress redundant packets
+                if (oldLightLevel != 0) {
+                    updateClientLightLevels(
+                            pos,
+                            0,
+                            sLevel,
+                            true
+                    );
+                }
             }
             chunk.setUnsaved(true);
         } else {
