@@ -4,6 +4,7 @@ import com.github.no_name_provided.nnp_fluidlogging.common.config.ServerConfig;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.extensions.IBlockExtension;
 import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
@@ -35,8 +36,7 @@ public interface FFluidlogging_IBlockExtension {
     private int nnp_f_fluidlogging_getLightEmission(int original, BlockState state, BlockGetter getter, BlockPos pos) {
         if (ServerConfig.considerFluidLightLevel) {
             AuxiliaryLightManager lManager = getter.getAuxLightManager(pos);
-            //noinspection deprecation - widely used in vanilla
-            if (lManager != null && !state.liquid()) {
+            if (lManager != null && (state.getBlock() instanceof SimpleWaterloggedBlock)) {
                 
                 return lManager.getLightAt(pos);
             }
