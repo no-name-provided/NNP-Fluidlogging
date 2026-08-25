@@ -6,6 +6,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "FFluidlogging_BlockBehavior",
+    "FFluidlogging_Entity",
     "FFluidlogging_FlowingFluid",
     "FFluidlogging_IBlockExtension",
     "FFluidlogging_LeavesBlock",
